@@ -1,9 +1,13 @@
-import { Graphics, GraphicsContext } from "pixi.js";
+import { Container, Graphics, GraphicsContext } from "pixi.js";
 import { MancalaPit } from "./MancalaPit";
+import { FancyButton } from "@pixi/ui";
+import { waitFor } from "../../../engine/utils/waitFor";
 
 
-export class MancalaBoard {
+export class MancalaBoard extends Container {
     //board of 6 x 2 pits and 2 capture pits
+    private static readonly WAIT_DURATION = 0.25;
+
     private static readonly boardSize = 14;
     public board: MancalaPit[] = [];
 
@@ -17,6 +21,15 @@ export class MancalaBoard {
     private storeLength = this.boardLength - (2 * this.boardVerticalBuffer);
 
     constructor(){
+        super();
+        this.addChild(new Graphics().roundRect(
+            -this.boardWidth/2,
+            -this.boardLength/2,
+            this.boardWidth,
+            this.boardLength,
+            15)
+            .fill({ color: 0x693927 })
+        )
         //init the board
         //stores will be at 6 and 13
         //player 1 is 0-6 
@@ -31,20 +44,45 @@ export class MancalaBoard {
             const isStore = (i+1) % 7 == 0;
             const player = i < 7 ? 1: 2;
 
-            this.board[i] = new MancalaPit(
+            const pit = new MancalaPit(
                 player,
                 this.pitSize,
                 isStore ? this.storeLength : this.pitSize,
-                cumulPitWidth,
-                i < 6 ? row1Length : row2Length,
                 isStore
             )
+
+            this.board[i] = pit
+
+            //button holds pitContainer
+            const pitButton = new FancyButton({
+                defaultView: (pit),
+                animations: this.buttonAnimations,
+            })
+            pitButton.x = cumulPitWidth;
+            pitButton.y = i < 6 ? row1Length : row2Length;
+
+            pitButton.onPress.connect(async () => {
+                await this.moveSeeds(i, 1)
+            });
+
+            this.addChild(pitButton);
 
             const movePos = this.pitSize + this.boardHorizontalBuffer;
             cumulPitWidth += i < 6 ? movePos : -movePos;
             
         }
     }
+
+    private buttonAnimations = {
+        hover: {
+            props: { scale: { x: 1.04, y: 1.04 } },
+            duration: 80,
+        },
+        pressed: {
+            props: { scale: { x: 0.96, y: 0.96 } },
+            duration: 80,
+        },
+    };
 
     public getStoreStatus(player: number): number {
         return this.board[(player * 7) - 1].getSeedHeld();
@@ -57,10 +95,11 @@ export class MancalaBoard {
     //when a pit is selected, fill in the next pits by the number of seeds in the selected pit
     //wrap round to 0 after 13
     //
-    public moveSeeds(pitChosen: number, player: number) {
+    public async moveSeeds(pitChosen: number, player: number) {
        let seeds = this.board[pitChosen].removeSeeds();
        for (let i = 1; i < seeds+1; i++) {
-            this.board[(pitChosen + 1) % MancalaBoard.boardSize].addSeed();
+            await waitFor(MancalaBoard.WAIT_DURATION);
+            this.board[(pitChosen + i) % MancalaBoard.boardSize].addSeed();
        }
        //check if last seed fell in empty pit
        const lastPit = (pitChosen + seeds) % MancalaBoard.boardSize;
@@ -91,23 +130,5 @@ export class MancalaBoard {
             return 2;
         }
         return 0;
-    }
-
-    public getGraphic(): Graphics[] {
-        const graphicArray: Graphics[] = [];
-
-        graphicArray.push(new Graphics().roundRect(
-            -this.boardWidth/2,
-            -this.boardLength/2,
-            this.boardWidth,
-            this.boardLength,
-            15)
-            .fill({ color: 0x693927 }))
-
-        for (let i = 0; i < MancalaBoard.boardSize; i++) {
-            graphicArray.push(this.board[i].getGraphic())
-        }
-
-        return graphicArray
     }
 }

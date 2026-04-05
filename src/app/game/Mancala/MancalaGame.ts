@@ -28,7 +28,7 @@ export class MancalaGame {
 
     public async show(screen: MainScreen): Promise<void> {
         this.screen = screen;
-        this.screen.mainContainer.addChild(...this.board.getGraphic());
-      }
+        this.screen.mainContainer.addChild(this.board);
+    }
 
 }
