@@ -1,7 +1,8 @@
-import { Container, Graphics, GraphicsContext } from "pixi.js";
+import { Container, Graphics } from "pixi.js";
 import { MancalaPit } from "./MancalaPit";
 import { FancyButton } from "@pixi/ui";
 import { waitFor } from "../../../engine/utils/waitFor";
+import { GameState } from "../GameState";
 
 
 export class MancalaBoard extends Container {
@@ -10,6 +11,15 @@ export class MancalaBoard extends Container {
 
     private static readonly boardSize = 14;
     public board: MancalaPit[] = [];
+    private gameState: GameState;
+
+    private playerButtons: {
+        1: FancyButton[],
+        2: FancyButton[]
+    }
+
+    public onTurnChange?: (player: number) => void;
+    public onGameEnd?: (winner: number) => void;
 
     //TODO: should make it scale on screen size
     private boardWidth: number = 900;
@@ -20,8 +30,9 @@ export class MancalaBoard extends Container {
     private pitSize = (this.boardWidth - (9 * this.boardHorizontalBuffer))/8;
     private storeLength = this.boardLength - (2 * this.boardVerticalBuffer);
 
-    constructor(){
+    constructor(state: GameState){
         super();
+        this.gameState = state;
         this.addChild(new Graphics().roundRect(
             -this.boardWidth/2,
             -this.boardLength/2,
@@ -30,6 +41,10 @@ export class MancalaBoard extends Container {
             15)
             .fill({ color: 0x693927 })
         )
+        this.playerButtons = {
+            1: [],
+            2: []
+        }
         //init the board
         //stores will be at 6 and 13
         //player 1 is 0-6 
@@ -53,20 +68,41 @@ export class MancalaBoard extends Container {
 
             this.board[i] = pit
 
-            //button holds pitContainer
-            const pitButton = new FancyButton({
-                defaultView: (pit),
-                animations: this.buttonAnimations,
-            })
-            pitButton.x = cumulPitWidth;
-            pitButton.y = i < 6 ? row1Length : row2Length;
+            if (isStore){
+                pit.x = cumulPitWidth;
+                pit.y = i < 6 ? row1Length : row2Length;
+                this.addChild(pit)
+            }
+            else {
+                 //button holds pitContainer
+                const pitButton = new FancyButton({
+                    defaultView: (pit),
+                    animations: this.buttonAnimations,
+                    
+                })
+                pitButton.x = cumulPitWidth;
+                pitButton.y = i < 6 ? row1Length : row2Length;
 
-            pitButton.onPress.connect(async () => {
-                await this.moveSeeds(i, 1)
-            });
+                pitButton.onPress.connect(async () => {
+                    const playerGoAgain = await this.moveSeeds(i, this.gameState.currentPlayer)
+                    if (!this.checkEnd()){
+                        if (!playerGoAgain){
+                            this.nextTurn();
+                            this.onTurnChange?.(this.gameState.currentPlayer);
+                        }
+                    }
+                    else {
+                        this.onGameEnd?.(this.gameState.winnerPlayer);
+                    }
+                });
 
-            this.addChild(pitButton);
+                if (player != this.gameState.currentPlayer) pitButton.enabled = false;
 
+                this.playerButtons[player].push(pitButton);
+
+                this.addChild(pitButton);
+            }
+           
             const movePos = this.pitSize + this.boardHorizontalBuffer;
             cumulPitWidth += i < 6 ? movePos : -movePos;
             
@@ -94,25 +130,35 @@ export class MancalaBoard extends Container {
 
     //when a pit is selected, fill in the next pits by the number of seeds in the selected pit
     //wrap round to 0 after 13
-    //
-    public async moveSeeds(pitChosen: number, player: number) {
-       let seeds = this.board[pitChosen].removeSeeds();
-       for (let i = 1; i < seeds+1; i++) {
+    // player 1 skips 13th pit player 2 skips 6th pit
+    public async moveSeeds(pitChosen: number, player: number): Promise<boolean> {
+        let seeds = this.board[pitChosen].removeSeeds();
+        let pitIndex = pitChosen;
+        for (let i = 1; i < seeds+1; i++) {
+            pitIndex += 1;
+            if ((pitIndex == 13 && player == 1) || (pitIndex == 6 && player == 2)) pitIndex ++;
+            pitIndex = pitIndex % MancalaBoard.boardSize;
             await waitFor(MancalaBoard.WAIT_DURATION);
-            this.board[(pitChosen + i) % MancalaBoard.boardSize].addSeed();
-       }
+            this.board[pitIndex].addSeed();
+        }
+       //check if player gets an extra turn
+        if (this.board[pitIndex].isStore()){
+            return true;
+        }
        //check if last seed fell in empty pit
-       const lastPit = (pitChosen + seeds) % MancalaBoard.boardSize;
-       if (this.board[lastPit].getSeedHeld() == 1){
+        //and if it belongs to the opponent
+        const adjacentPitIndex = (-pitIndex + 12) % MancalaBoard.boardSize
+        if (this.board[pitIndex].getSeedHeld() == 1 && this.board[adjacentPitIndex].player != player){
             //take all seeds in adjacent pit and put in player's store
-            seeds = this.board[(-lastPit + 12) % MancalaBoard.boardSize].removeSeeds();
+            seeds = this.board[adjacentPitIndex].removeSeeds();
             this.placeSeedInStore(player, seeds)
-       }
+        }
+        return false;
     }
 
     //check if the pits on either end are empty
     //winner keeps all their seeds
-    public checkEnd(): number {
+    private checkEnd(): boolean {
         let player1PitScore = 0;
         let player2PitScore = 0;
 
@@ -122,13 +168,55 @@ export class MancalaBoard extends Container {
         }
 
         if (player1PitScore == 0){
-            this.placeSeedInStore(2, player2PitScore)
-            return 1;
+            this.placeSeedInStore(2, player2PitScore);
+            this.finishUpGame();
+            return true;
         }
         if (player2PitScore == 0){
-            this.placeSeedInStore(1, player1PitScore)
-            return 2;
+            this.placeSeedInStore(1, player1PitScore);
+            this.finishUpGame();
+            return true;
         }
-        return 0;
+        return false;
+    }
+
+    private finishUpGame() {
+        //find winner
+        const player1Score = this.board[6].getSeedHeld();
+        const player2Score = this.board[13].getSeedHeld();
+        if (player1Score > player2Score) this.gameState.winnerPlayer = 1;
+        else if (player2Score > player1Score) this.gameState.winnerPlayer = 2;
+        //else tie
+        //remove all seeds so it makes sense visually
+        this.board.forEach((pit) => {
+            if (!pit.isStore()){pit.removeSeeds();}
+        })
+        this.disableAllButtons();
+        this.gameState.gameActive = false;
+        
+    }
+
+    private nextTurn(): void {
+        //yes this is ugly but typescript doesnt like me,,,, its personal
+        this.gameState.currentPlayer = this.gameState.currentPlayer == 1 ? 2 : 1;
+        const nextPlayer = this.gameState.currentPlayer == 1 ? 1 : 2;   //what is that??? i hate it
+        const prevPlayer = nextPlayer == 1 ? 2 : 1;
+        //handle buttons
+        this.playerButtons[nextPlayer].forEach((button) => {
+            button.enabled = true;
+        })
+        this.playerButtons[prevPlayer].forEach((button) => {
+            button.enabled = false;
+        })
+        this.gameState.turns++;
+    }
+
+    private disableAllButtons(): void {
+        this.playerButtons[1].forEach((button) => {
+            button.enabled = false;
+        })
+        this.playerButtons[2].forEach((button) => {
+            button.enabled = false;
+        })
     }
 }

@@ -7,9 +7,6 @@ import { Container } from "pixi.js";
 import { engine } from "../../getEngine";
 import { PausePopup } from "../../popups/PausePopup";
 import { SettingsPopup } from "../../popups/SettingsPopup";
-import { Button } from "../../ui/Button";
-
-import { Bouncer } from "./Bouncer";
 
 import { MancalaGame } from "../../game/Mancala/MancalaGame";
 
@@ -21,8 +18,6 @@ export class MainScreen extends Container {
   public mainContainer: Container;
   private pauseButton: FancyButton;
   private settingsButton: FancyButton;
-  private addButton: FancyButton;
-  private removeButton: FancyButton;
   //private bouncer: Bouncer;
   private mancalaGame: MancalaGame;
 
@@ -33,7 +28,6 @@ export class MainScreen extends Container {
 
     this.mainContainer = new Container();
     this.addChild(this.mainContainer);
-    //this.bouncer = new Bouncer();
 
     this.mancalaGame = new MancalaGame();
 
@@ -70,22 +64,6 @@ export class MainScreen extends Container {
       engine().navigation.presentPopup(SettingsPopup),
     );
     this.addChild(this.settingsButton);
-
-    this.addButton = new Button({
-      text: "Add",
-      width: 175,
-      height: 110,
-    });
-    //this.addButton.onPress.connect(() => this.bouncer.add());
-    this.addChild(this.addButton);
-
-    this.removeButton = new Button({
-      text: "Remove",
-      width: 175,
-      height: 110,
-    });
-    //this.removeButton.onPress.connect(() => this.bouncer.remove());
-    this.addChild(this.removeButton);
   }
 
   /** Prepare the screen just before showing */
@@ -124,12 +102,6 @@ export class MainScreen extends Container {
     this.pauseButton.y = 30;
     this.settingsButton.x = width - 30;
     this.settingsButton.y = 30;
-    this.removeButton.x = width / 2 - 100;
-    this.removeButton.y = height - 75;
-    this.addButton.x = width / 2 + 100;
-    this.addButton.y = height - 75;
-
-    //this.bouncer.resize(width, height);
   }
 
   /** Show screen with animations */
@@ -139,8 +111,6 @@ export class MainScreen extends Container {
     const elementsToAnimate = [
       this.pauseButton,
       this.settingsButton,
-      this.addButton,
-      this.removeButton,
     ];
 
     let finalPromise!: AnimationPlaybackControls;

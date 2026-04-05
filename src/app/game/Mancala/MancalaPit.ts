@@ -1,9 +1,10 @@
 import { Container, Graphics, Text } from "pixi.js";
+import { engine } from "../../getEngine";
 
 export class MancalaPit extends Container {
 
     public store: boolean = false;
-    private seedHeld: number = 4;
+    private seedHeld: number = 1;
     public selectable = true;
     public player: number = 1;
 
@@ -36,6 +37,7 @@ export class MancalaPit extends Container {
     public addSeed(plusSeed = 1): void {
         this.seedHeld += plusSeed;
         this.seedText.text = this.seedHeld
+        this.animateText(this.seedText)
     }
 
     public getSeedHeld(): number {
@@ -69,4 +71,25 @@ export class MancalaPit extends Container {
         this.addChild(this.seedText)
     }
 
+    public isStore(): boolean{
+        return this.store;
+    }
+
+    private animateText(text: Text) {
+        let life = 60;
+
+        const tickerFunc = () => {
+            text.scale.x += 0.01;
+            text.scale.y += 0.01;
+
+            life--;
+            if (life <= 0) {
+                engine().ticker.remove(tickerFunc);
+                text.scale.x = 1;
+                text.scale.y = 1;
+            }
+        };
+
+        engine().ticker.add(tickerFunc);
+    }
 }
