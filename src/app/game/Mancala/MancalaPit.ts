@@ -4,7 +4,7 @@ import { engine } from "../../getEngine";
 export class MancalaPit extends Container {
 
     public store: boolean = false;
-    private seedHeld: number = 1;
+    private seedHeld: number = 4;
     public selectable = true;
     public player: number = 1;
 
