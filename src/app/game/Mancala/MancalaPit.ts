@@ -1,3 +1,4 @@
+import { Graphics, GraphicsContext } from "pixi.js";
 
 export class MancalaPit {
 
@@ -5,13 +6,23 @@ export class MancalaPit {
     private seedHeld: number = 4;
     public selectable = true;
     public player: number = 1;
+    
+    private pitWidth: number = 50;
+    private pitLength: number = 50;
 
-    constructor(player: number, isStore = false){
+    private posX: number = 0;
+    private posY: number = 0;
+
+    constructor(player: number, pitWidth: number, pitLength: number, posX: number, posyY: number, isStore = false){
+        this.player = player;
+        this.pitWidth = pitWidth;
+        this.pitLength = pitLength;
+        this.posX = posX;
+        this.posY = posyY;
         if (isStore){
             this.store = true;
             this.seedHeld = 0;
             this.selectable = false;
-            this.player = player;
         }
     }
 
@@ -27,6 +38,19 @@ export class MancalaPit {
 
     public getSeedHeld(): number {
         return this.seedHeld;
+    }
+
+    public getGraphic(): Graphics {
+        //blueprint
+        const context = new GraphicsContext().roundRect(
+            this.posX,
+            this.posY,
+            this.pitWidth,
+            this.pitLength,
+            15)
+            .fill(this.player == 1 ? { color: 0x452519 } : { color: 0x782304 })
+
+        return new Graphics(context);
     }
 
 }

@@ -24,8 +24,8 @@ setEngine(engine);
   // Initialize the user settings
   userSettings.init();
 
-  // Show the load screen
-  await engine.navigation.showScreen(LoadScreen);
+  // Show the load screen TEMP REMOVAL
+  //await engine.navigation.showScreen(LoadScreen);
   // Show the main screen once the load screen is dismissed
   await engine.navigation.showScreen(MainScreen);
 })();

@@ -1,3 +1,4 @@
+import { MainScreen } from "../../screens/main/MainScreen";
 import { MancalaBoard } from "./MancalaBoard";
 
 export class MancalaGame {
@@ -6,10 +7,12 @@ export class MancalaGame {
     private gameActive = true;
     public turn = 0;
 
+    public screen!: MainScreen;
+
     constructor(){
         this.board = new MancalaBoard;
         //might need a start button instead of making it instant
-        this.gameLoop();
+        //this.gameLoop();
     }
 
     //take turns with players
@@ -22,5 +25,10 @@ export class MancalaGame {
             //
         }
     }
+
+    public async show(screen: MainScreen): Promise<void> {
+        this.screen = screen;
+        this.screen.mainContainer.addChild(...this.board.getGraphic());
+      }
 
 }
