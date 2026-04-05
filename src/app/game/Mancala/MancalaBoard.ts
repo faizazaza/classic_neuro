@@ -90,6 +90,7 @@ export class MancalaBoard extends Container {
                             this.nextTurn();
                             this.onTurnChange?.(this.gameState.currentPlayer);
                         }
+                        else {this.refreshButtons()}
                     }
                     else {
                         this.onGameEnd?.(this.gameState.winnerPlayer);
@@ -151,7 +152,7 @@ export class MancalaBoard extends Container {
         if (this.board[pitIndex].getSeedHeld() == 1 && this.board[adjacentPitIndex].player != player){
             //take all seeds in adjacent pit and put in player's store
             seeds = this.board[adjacentPitIndex].removeSeeds();
-            this.placeSeedInStore(player, seeds)
+            if (seeds != 0) this.placeSeedInStore(player, seeds);   
         }
         return false;
     }
@@ -198,17 +199,24 @@ export class MancalaBoard extends Container {
 
     private nextTurn(): void {
         //yes this is ugly but typescript doesnt like me,,,, its personal
-        this.gameState.currentPlayer = this.gameState.currentPlayer == 1 ? 2 : 1;
-        const nextPlayer = this.gameState.currentPlayer == 1 ? 1 : 2;   //what is that??? i hate it
-        const prevPlayer = nextPlayer == 1 ? 2 : 1;
+        this.gameState.currentPlayer = this.gameState.currentPlayer == 1 ? 2 : 1;  //what is that??? i hate it
+        const prevPlayer = this.gameState.currentPlayer == 1 ? 2 : 1;
         //handle buttons
-        this.playerButtons[nextPlayer].forEach((button) => {
-            button.enabled = true;
-        })
+        this.refreshButtons();
         this.playerButtons[prevPlayer].forEach((button) => {
             button.enabled = false;
         })
         this.gameState.turns++;
+    }
+
+    private refreshButtons(): void {
+        const player = this.gameState.currentPlayer == 1 ? 1 : 2;
+        let i = player == 1 ? 0 : 7;
+        this.playerButtons[player].forEach((button) => {
+            if (this.board[i].getSeedHeld() == 0) {button.enabled = false;}
+            else {button.enabled = true;}
+            i++;
+        })
     }
 
     private disableAllButtons(): void {
