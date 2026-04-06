@@ -1,6 +1,6 @@
 import { Container, Text } from "pixi.js";
 import { randomBool } from "../../../engine/utils/random";
-import { GameState } from "../GameState";
+import { GameState } from "../../screens/main/GameState";
 import { MancalaBoard } from "./MancalaBoard";
 import { engine } from "../../getEngine";
 import { ConfettiEmitter } from "../ConfettiEmitter";
@@ -22,8 +22,9 @@ export class MancalaGame extends Container {
 
     public onHomePressed?: () => void;
 
-    constructor(screenWidth: number, screenHeight: number){
+    constructor(state: GameState, screenWidth: number, screenHeight: number){
         super();
+        this.gameState = state;
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
         engine().ticker.autoStart = true;
@@ -95,7 +96,6 @@ export class MancalaGame extends Container {
     }
 
     private initGame() {
-        this.gameState = new GameState;
         this.gameState.currentPlayer = randomBool() ? 1 : 2;
         this.board = new MancalaBoard(this.gameState);
 
@@ -111,7 +111,7 @@ export class MancalaGame extends Container {
             text: `Player ${this.gameState.currentPlayer}'s Turn`,
             style: {
             fontSize: 50,
-            fill: 0xffffff,
+            fill: this.gameState.currentPlayer == 1 ? this.gameState.player1Colour : this.gameState.player2Colour,
             padding: 0,
             fontWeight: '800',
             },
@@ -124,6 +124,7 @@ export class MancalaGame extends Container {
 
     updateTurnText = (player: number) => {
         this.topText.text = `Player ${player}'s Turn`;
+        this.topText.style.fill = this.gameState.currentPlayer == 1 ? this.gameState.player1Colour : this.gameState.player2Colour;
     }
 
     endGame = (winner: number) => {
@@ -137,6 +138,9 @@ export class MancalaGame extends Container {
 
         this.homeButton.visible = true;
         this.homeButton.enabled = true;
+
+        if (winner == 1) this.gameState.player1Wins += 1
+        else this.gameState.player2Wins += 1
     }
 
 }

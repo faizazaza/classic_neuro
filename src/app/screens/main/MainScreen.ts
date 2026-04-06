@@ -11,11 +11,14 @@ import { SettingsPopup } from "../../popups/SettingsPopup";
 import { MancalaGame } from "../../game/Mancala/MancalaGame";
 import { GameArray } from "./GameArray";
 import { GameList } from "../../ui/GameList";
+import { GameState } from "./GameState";
 
 /** The screen that holds the app */
 export class MainScreen extends Container {
   /** Assets bundles required by this screen */
   public static assetBundles = ["main"];
+
+  private gameState: GameState;
 
   public mainContainer: Container;
   private pauseButton: FancyButton;
@@ -28,6 +31,8 @@ export class MainScreen extends Container {
 
   constructor() {
     super();
+
+    this.gameState = new GameState
 
     this.mainContainer = new Container();
     this.addChild(this.mainContainer);
@@ -149,7 +154,7 @@ export class MainScreen extends Container {
   setGame = (game: GameList) => {
     //TODO switch case here
     //also make an abstract game class MancalaGame can extend from
-    this.game = new MancalaGame(screen.width, screen.height);
+    this.game = new MancalaGame(this.gameState, screen.width, screen.height);
     this.game.onHomePressed = () => {this.showGameArray()}
     this.reset();
     this.mainContainer.addChild(this.game);

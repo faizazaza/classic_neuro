@@ -1,8 +1,11 @@
 import { Container, Graphics, Text } from "pixi.js";
 import { engine } from "../../getEngine";
 import { FancyButton } from "@pixi/ui";
+import { GameState } from "../../screens/main/GameState";
 
 export class MancalaPit extends Container {
+
+    private gameState: GameState;
 
     private index: number;
     public store: boolean;
@@ -18,8 +21,9 @@ export class MancalaPit extends Container {
 
     public onTurnChange?: (index: number) => void;
 
-    constructor(index: number, player: number, pitWidth: number, pitLength: number, posX: number, posY: number, isStore = false){
+    constructor(state: GameState, index: number, player: number, pitWidth: number, pitLength: number, posX: number, posY: number, isStore = false){
         super()
+        this.gameState = state;
         this.index = index;
         this.player = player;
         this.pitWidth = pitWidth;
@@ -68,8 +72,8 @@ export class MancalaPit extends Container {
             this.pitWidth,
             this.pitLength,
             15)
-            .fill(this.player == 1 ? { color: 0x452519 } : { color: 0x782304 }
-        )
+            .stroke({ width: 10, color: this.player == 1 ? this.gameState.player1Colour : this.gameState.player2Colour })
+            .fill({ color: 0x452519 })
 
         if (!this.store){
             this.pitButton = new FancyButton({

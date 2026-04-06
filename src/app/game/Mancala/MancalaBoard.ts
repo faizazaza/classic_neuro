@@ -1,7 +1,7 @@
 import { Container, Graphics } from "pixi.js";
 import { MancalaPit } from "./MancalaPit";
 import { waitFor } from "../../../engine/utils/waitFor";
-import { GameState } from "../GameState";
+import { GameState } from "../../screens/main/GameState";
 
 
 export class MancalaBoard extends Container {
@@ -52,6 +52,7 @@ export class MancalaBoard extends Container {
             const player = i < 7 ? 1: 2;
 
             const pit = new MancalaPit(
+                this.gameState,
                 i,
                 player,
                 this.pitSize,
