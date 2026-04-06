@@ -27,17 +27,11 @@ export class MancalaGame {
         this.restartButton = new FancyButton({
             defaultView: "icon-replay.png",
             anchor: 0.5,
-            scale: 2,
+            scale: 1,
             animations: {
                 hover: {
                     props: {
-                    scale: { x: 1.1, y: 1.1 },
-                    },
-                    duration: 100,
-                },
-                pressed: {
-                    props: {
-                    scale: { x: 0.9, y: 0.9 },
+                        scale: { x: 1.1, y: 1.1 },
                     },
                     duration: 100,
                 },
@@ -51,8 +45,8 @@ export class MancalaGame {
             this.initGame();
             this.drawGame();
         });
-        this.restartButton.visible = false;
-        this.restartButton.enabled = false;
+        // this.restartButton.visible = false;
+        // this.restartButton.enabled = false;
     }
 
     private drawGame(){
