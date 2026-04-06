@@ -1,6 +1,5 @@
 import { Container, Graphics } from "pixi.js";
 import { MancalaPit } from "./MancalaPit";
-import { FancyButton } from "@pixi/ui";
 import { waitFor } from "../../../engine/utils/waitFor";
 import { GameState } from "../GameState";
 
@@ -12,11 +11,6 @@ export class MancalaBoard extends Container {
     private static readonly boardSize = 14;
     public board: MancalaPit[] = [];
     private gameState: GameState;
-
-    private playerButtons: {
-        1: FancyButton[],
-        2: FancyButton[]
-    }
 
     public onTurnChange?: (player: number) => void;
     public onGameEnd?: (winner: number) => void;
@@ -41,10 +35,6 @@ export class MancalaBoard extends Container {
             15)
             .fill({ color: 0x693927 })
         )
-        this.playerButtons = {
-            1: [],
-            2: []
-        }
         //init the board
         //stores will be at 6 and 13
         //player 1 is 0-6 
@@ -60,49 +50,26 @@ export class MancalaBoard extends Container {
             const player = i < 7 ? 1: 2;
 
             const pit = new MancalaPit(
+                i,
                 player,
                 this.pitSize,
                 isStore ? this.storeLength : this.pitSize,
+                cumulPitWidth,
+                i < 6 ? row1Length : row2Length,
                 isStore
             )
 
             this.board[i] = pit
 
-            if (isStore){
-                pit.x = cumulPitWidth;
-                pit.y = i < 6 ? row1Length : row2Length;
-                this.addChild(pit)
+            if (!isStore){
+                pit.onTurnChange = (i) => {
+                    this.buttonFunc(i)
+                }
+
+                if (player != this.gameState.currentPlayer) pit.disableButton();
             }
-            else {
-                 //button holds pitContainer
-                const pitButton = new FancyButton({
-                    defaultView: (pit),
-                    animations: this.buttonAnimations,
-                    
-                })
-                pitButton.x = cumulPitWidth;
-                pitButton.y = i < 6 ? row1Length : row2Length;
 
-                pitButton.onPress.connect(async () => {
-                    const playerGoAgain = await this.moveSeeds(i, this.gameState.currentPlayer)
-                    if (!this.checkEnd()){
-                        if (!playerGoAgain){
-                            this.nextTurn();
-                            this.onTurnChange?.(this.gameState.currentPlayer);
-                        }
-                        else {this.refreshButtons()}
-                    }
-                    else {
-                        this.onGameEnd?.(this.gameState.winnerPlayer);
-                    }
-                });
-
-                if (player != this.gameState.currentPlayer) pitButton.enabled = false;
-
-                this.playerButtons[player].push(pitButton);
-
-                this.addChild(pitButton);
-            }
+            this.addChild(pit)
            
             const movePos = this.pitSize + this.boardHorizontalBuffer;
             cumulPitWidth += i < 6 ? movePos : -movePos;
@@ -110,16 +77,24 @@ export class MancalaBoard extends Container {
         }
     }
 
-    private buttonAnimations = {
-        hover: {
-            props: { scale: { x: 1.04, y: 1.04 } },
-            duration: 80,
-        },
-        pressed: {
-            props: { scale: { x: 0.96, y: 0.96 } },
-            duration: 80,
-        },
-    };
+    buttonFunc = async (index: number) => {
+        const playerGoAgain = await this.moveSeeds(index, this.gameState.currentPlayer)
+        console.log(playerGoAgain);
+        if (!this.checkEnd()){
+            if (!playerGoAgain){
+                this.nextTurn();
+                this.onTurnChange?.(this.gameState.currentPlayer);
+            }
+            else {
+                this.refreshButtons()
+            }
+        }
+        else {
+            this.onGameEnd?.(this.gameState.winnerPlayer);
+        }
+    }
+
+
 
     public getStoreStatus(player: number): number {
         return this.board[(player * 7) - 1].getSeedHeld();
@@ -198,33 +173,31 @@ export class MancalaBoard extends Container {
     }
 
     private nextTurn(): void {
-        //yes this is ugly but typescript doesnt like me,,,, its personal
-        this.gameState.currentPlayer = this.gameState.currentPlayer == 1 ? 2 : 1;  //what is that??? i hate it
-        const prevPlayer = this.gameState.currentPlayer == 1 ? 2 : 1;
+        //change to next player
+        this.gameState.currentPlayer = this.gameState.currentPlayer == 1 ? 2 : 1;
         //handle buttons
         this.refreshButtons();
-        this.playerButtons[prevPlayer].forEach((button) => {
-            button.enabled = false;
-        })
         this.gameState.turns++;
     }
 
     private refreshButtons(): void {
-        const player = this.gameState.currentPlayer == 1 ? 1 : 2;
-        let i = player == 1 ? 0 : 7;
-        this.playerButtons[player].forEach((button) => {
-            if (this.board[i].getSeedHeld() == 0) {button.enabled = false;}
-            else {button.enabled = true;}
-            i++;
-        })
+        for (let i = 0; i < MancalaBoard.boardSize; i++) {
+            if (!this.board[i].isStore()){
+                if (this.board[i].player == this.gameState.currentPlayer && this.board[i].getSeedHeld() != 0){
+                    this.board[i].enableButton()
+                }
+                else {
+                    this.board[i].disableButton()
+                }
+            }
+        }
     }
 
     private disableAllButtons(): void {
-        this.playerButtons[1].forEach((button) => {
-            button.enabled = false;
-        })
-        this.playerButtons[2].forEach((button) => {
-            button.enabled = false;
-        })
+        for (let i = 0; i < MancalaBoard.boardSize; i++) {
+            if (!this.board[i].isStore){
+                this.board[i].disableButton()
+            }
+        }
     }
 }

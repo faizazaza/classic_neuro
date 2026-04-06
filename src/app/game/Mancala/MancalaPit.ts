@@ -1,20 +1,26 @@
 import { Container, Graphics, Text } from "pixi.js";
 import { engine } from "../../getEngine";
+import { FancyButton } from "@pixi/ui";
 
 export class MancalaPit extends Container {
 
+    private index: number;
     public store: boolean = false;
     private seedHeld: number = 4;
     public selectable = true;
     public player: number = 1;
 
+    private pitButton!: FancyButton;
     private seedText!: Text;
     
     private pitWidth: number = 50;
     private pitLength: number = 50;
 
-    constructor(player: number, pitWidth: number, pitLength: number, isStore = false){
+    public onTurnChange?: (index: number) => void;
+
+    constructor(index: number, player: number, pitWidth: number, pitLength: number, posX: number, posY: number, isStore = false){
         super()
+        this.index = index;
         this.player = player;
         this.pitWidth = pitWidth;
         this.pitLength = pitLength;
@@ -23,7 +29,7 @@ export class MancalaPit extends Container {
             this.seedHeld = 0;
             this.selectable = false;
         }
-        this.setUpGraphics();
+        this.setUpGraphics(posX, posY);
     
     }
 
@@ -44,16 +50,51 @@ export class MancalaPit extends Container {
         return this.seedHeld;
     }
 
-    public setUpGraphics(): void {
+    public setUpGraphics(posX: number, posY: number): void {
 
-        this.addChild(new Graphics().roundRect(
+        const holder = new Container();
+        holder.x = posX;
+        holder.y = posY;
+
+
+        const pit = new Graphics().roundRect(
             0,
             0,
             this.pitWidth,
             this.pitLength,
             15)
-            .fill(this.player == 1 ? { color: 0x452519 } : { color: 0x782304 })
+            .fill(this.player == 1 ? { color: 0x452519 } : { color: 0x782304 }
         )
+
+        if (!this.store){
+            this.pitButton = new FancyButton({
+                defaultView: (pit),
+                animations: {
+                    hover: {
+                        props: { scale: { x: 1.04, y: 1.04 } },
+                        duration: 80,
+                    },
+                    pressed: {
+                        props: { scale: { x: 0.96, y: 0.96 } },
+                        duration: 80,
+                    },
+                },
+            })
+            this.pitButton.x = 0;
+            this.pitButton.y = 0;
+
+
+            this.pitButton.onPress.connect(async () => {
+                this.onTurnChange?.(this.index)
+            });
+
+            holder.addChild(this.pitButton);
+        }
+        else {
+            holder.addChild(pit)
+        }
+
+        this.addChild(holder);
 
         this.seedText = new Text({
             text: this.seedHeld,
@@ -63,8 +104,8 @@ export class MancalaPit extends Container {
             padding: 0,
             fontWeight: '800',
             },
-                x: this.pitWidth / 2,
-                y: this.pitLength / 2,
+                x: posX + (this.pitWidth / 2),
+                y: posY + (this.pitLength / 2),
             anchor: 0.5,
         });
 
@@ -73,6 +114,18 @@ export class MancalaPit extends Container {
 
     public isStore(): boolean{
         return this.store;
+    }
+
+    public isEnabled(): boolean{
+        return this.pitButton.enabled;
+    }
+
+    public enableButton(){
+        this.pitButton.enabled = true;
+    }
+
+    public disableButton(){
+        this.pitButton.enabled = false;
     }
 
     private animateText(text: Text) {
