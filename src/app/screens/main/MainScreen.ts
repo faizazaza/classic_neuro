@@ -9,6 +9,8 @@ import { PausePopup } from "../../popups/PausePopup";
 import { SettingsPopup } from "../../popups/SettingsPopup";
 
 import { MancalaGame } from "../../game/Mancala/MancalaGame";
+import { GameArray } from "./GameArray";
+import { GameList } from "../../ui/GameList";
 
 /** The screen that holds the app */
 export class MainScreen extends Container {
@@ -19,7 +21,8 @@ export class MainScreen extends Container {
   private pauseButton: FancyButton;
   private settingsButton: FancyButton;
   //private bouncer: Bouncer;
-  private mancalaGame: MancalaGame;
+  private gameArray: GameArray;
+  private game!: MancalaGame;
 
   private paused = false;
 
@@ -28,8 +31,6 @@ export class MainScreen extends Container {
 
     this.mainContainer = new Container();
     this.addChild(this.mainContainer);
-
-    this.mancalaGame = new MancalaGame();
 
     const buttonAnimations = {
       hover: {
@@ -64,6 +65,12 @@ export class MainScreen extends Container {
       engine().navigation.presentPopup(SettingsPopup),
     );
     this.addChild(this.settingsButton);
+
+    this.gameArray = new GameArray();
+    this.gameArray.onGameSelect = (game) => {
+      this.setGame(game);
+    }
+    this.mainContainer.addChild(this.gameArray)
   }
 
   /** Prepare the screen just before showing */
@@ -89,7 +96,9 @@ export class MainScreen extends Container {
   }
 
   /** Fully reset */
-  public reset() {}
+  public reset() {
+    this.mainContainer.removeChildren();
+  }
 
   /** Resize the screen, fired whenever window size changes */
   public resize(width: number, height: number) {
@@ -125,7 +134,6 @@ export class MainScreen extends Container {
 
     await finalPromise;
     //this.bouncer.show(this);
-    this.mancalaGame.show(this);
   }
 
   /** Hide screen with animations */
@@ -136,5 +144,20 @@ export class MainScreen extends Container {
     if (!engine().navigation.currentPopup) {
       engine().navigation.presentPopup(PausePopup);
     }
+  }
+
+  setGame = (game: GameList) => {
+    //TODO switch case here
+    //also make an abstract game class MancalaGame can extend from
+    this.game = new MancalaGame(screen.width, screen.height);
+    this.game.onHomePressed = () => {this.showGameArray()}
+    this.reset();
+    this.mainContainer.addChild(this.game);
+  }
+
+  showGameArray = () => {
+    this.game.destroy();
+    this.reset();
+    this.mainContainer.addChild(this.gameArray);
   }
 }

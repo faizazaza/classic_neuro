@@ -1,24 +1,31 @@
-import { Text } from "pixi.js";
+import { Container, Text } from "pixi.js";
 import { randomBool } from "../../../engine/utils/random";
-import { MainScreen } from "../../screens/main/MainScreen";
 import { GameState } from "../GameState";
 import { MancalaBoard } from "./MancalaBoard";
 import { engine } from "../../getEngine";
 import { ConfettiEmitter } from "../ConfettiEmitter";
 import { FancyButton } from "@pixi/ui";
 
-export class MancalaGame {
+export class MancalaGame extends Container {
     /** Assets bundles required by this screen */
     public static assetBundles = ["main"];
     //handle turns and game loop
     private board!: MancalaBoard;
-    public screen!: MainScreen;
     private topText!: Text;
     private gameState!: GameState;
     private confetti: ConfettiEmitter;
     private restartButton: FancyButton;
+    private homeButton: FancyButton;
 
-    constructor(){
+    private screenWidth: number;
+    private screenHeight: number;
+
+    public onHomePressed?: () => void;
+
+    constructor(screenWidth: number, screenHeight: number){
+        super();
+        this.screenWidth = screenWidth;
+        this.screenHeight = screenHeight;
         engine().ticker.autoStart = true;
         this.initGame();
 
@@ -37,26 +44,54 @@ export class MancalaGame {
                 },
             },
         })
-        this.restartButton.x = 0;
+        this.restartButton.x = 100;
         this.restartButton.y = 300;
 
         this.restartButton.onPress.connect(() => {
-            this.screen.mainContainer.removeChildren();
+            this.removeChildren();
             this.initGame();
             this.drawGame();
         });
-        // this.restartButton.visible = false;
-        // this.restartButton.enabled = false;
+        
+        this.restartButton.visible = false;
+        this.restartButton.enabled = false;
+
+        this.homeButton = new FancyButton({
+            defaultView: "icon-home.png",
+            anchor: 0.5,
+            scale: 1,
+            animations: {
+                hover: {
+                    props: {
+                        scale: { x: 1.1, y: 1.1 },
+                    },
+                    duration: 100,
+                },
+            },
+        })
+        this.homeButton.x = -100;
+        this.homeButton.y = 300;
+
+        this.homeButton.onPress.connect(() => {
+            this.onHomePressed?.()
+        });
+        
+        this.homeButton.visible = false;
+        this.homeButton.enabled = false;
+
+        this.drawGame();
     }
 
     private drawGame(){
-        this.screen.mainContainer.addChild(this.board);
+        this.addChild(this.board);
         //topText
-        this.screen.mainContainer.addChild(this.topText);
+        this.addChild(this.topText);
 
-        this.screen.mainContainer.addChild(this.restartButton);
+        this.addChild(this.restartButton);
 
-        this.screen.mainContainer.addChild(this.confetti);
+        this.addChild(this.homeButton);
+
+        this.addChild(this.confetti);
     }
 
     private initGame() {
@@ -94,16 +129,14 @@ export class MancalaGame {
     endGame = (winner: number) => {
         this.topText.text = `Winner is Player ${winner}!`;
         for (let i = 0; i <= 5; i++) {
-            const xVal = (-this.screen.width/2) + ((this.screen.width) / 5 * i)
-            this.confetti.burst(xVal, -this.screen.height/2, 120);
+            const xVal = (-this.screenWidth/2) + ((this.screenWidth) / 5 * i)
+            this.confetti.burst(xVal, -this.screenHeight/2, 120);
         }
         this.restartButton.visible = true;
         this.restartButton.enabled = true;
-    }
 
-    public async show(screen: MainScreen): Promise<void> {
-        this.screen = screen;
-        this.drawGame();
+        this.homeButton.visible = true;
+        this.homeButton.enabled = true;
     }
 
 }
