@@ -9,23 +9,24 @@ export class MancalaBoard extends Container {
     private static readonly WAIT_DURATION = 0.25;
 
     private static readonly boardSize = 14;
-    public board: MancalaPit[] = [];
+    public board: MancalaPit[];
     private gameState: GameState;
 
     public onTurnChange?: (player: number) => void;
     public onGameEnd?: (winner: number) => void;
 
     //TODO: should make it scale on screen size
-    private boardWidth: number = 900;
-    private boardVerticalBuffer: number = 50;
-    private boardHorizontalBuffer: number = 20;
-    private boardLength: number = this.boardWidth / 2;
+    private readonly boardWidth: number = 900;
+    private readonly boardVerticalBuffer: number = 50;
+    private readonly boardHorizontalBuffer: number = 20;
+    private readonly boardLength: number = this.boardWidth / 2;
 
-    private pitSize = (this.boardWidth - (9 * this.boardHorizontalBuffer))/8;
-    private storeLength = this.boardLength - (2 * this.boardVerticalBuffer);
+    private readonly pitSize = (this.boardWidth - (9 * this.boardHorizontalBuffer))/8;
+    private readonly storeLength = this.boardLength - (2 * this.boardVerticalBuffer);
 
     constructor(state: GameState){
         super();
+        this.removeChildren();
         this.gameState = state;
         this.addChild(new Graphics().roundRect(
             -this.boardWidth/2,
@@ -35,6 +36,7 @@ export class MancalaBoard extends Container {
             15)
             .fill({ color: 0x693927 })
         )
+        this.board = [];
         //init the board
         //stores will be at 6 and 13
         //player 1 is 0-6 
@@ -79,7 +81,6 @@ export class MancalaBoard extends Container {
 
     buttonFunc = async (index: number) => {
         const playerGoAgain = await this.moveSeeds(index, this.gameState.currentPlayer)
-        console.log(playerGoAgain);
         if (!this.checkEnd()){
             if (!playerGoAgain){
                 this.nextTurn();

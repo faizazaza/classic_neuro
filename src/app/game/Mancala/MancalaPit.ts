@@ -5,16 +5,16 @@ import { FancyButton } from "@pixi/ui";
 export class MancalaPit extends Container {
 
     private index: number;
-    public store: boolean = false;
-    private seedHeld: number = 4;
-    public selectable = true;
-    public player: number = 1;
+    public store: boolean;
+    private seedHeld: number;
+    public selectable;
+    public player: number;
 
     private pitButton!: FancyButton;
     private seedText!: Text;
     
-    private pitWidth: number = 50;
-    private pitLength: number = 50;
+    private pitWidth: number;
+    private pitLength: number;
 
     public onTurnChange?: (index: number) => void;
 
@@ -28,6 +28,11 @@ export class MancalaPit extends Container {
             this.store = true;
             this.seedHeld = 0;
             this.selectable = false;
+        }
+        else {
+            this.store = false;
+            this.seedHeld = 4;
+            this.selectable = true;
         }
         this.setUpGraphics(posX, posY);
     

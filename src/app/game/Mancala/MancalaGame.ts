@@ -5,17 +5,67 @@ import { GameState } from "../GameState";
 import { MancalaBoard } from "./MancalaBoard";
 import { engine } from "../../getEngine";
 import { ConfettiEmitter } from "../ConfettiEmitter";
+import { FancyButton } from "@pixi/ui";
 
 export class MancalaGame {
+    /** Assets bundles required by this screen */
+    public static assetBundles = ["main"];
     //handle turns and game loop
-    private board: MancalaBoard;
+    private board!: MancalaBoard;
     public screen!: MainScreen;
     private topText!: Text;
-    private gameState: GameState;
+    private gameState!: GameState;
     private confetti: ConfettiEmitter;
+    private restartButton: FancyButton;
 
     constructor(){
         engine().ticker.autoStart = true;
+        this.initGame();
+
+        this.confetti = new ConfettiEmitter();
+
+        this.restartButton = new FancyButton({
+            defaultView: "icon-replay.png",
+            anchor: 0.5,
+            scale: 2,
+            animations: {
+                hover: {
+                    props: {
+                    scale: { x: 1.1, y: 1.1 },
+                    },
+                    duration: 100,
+                },
+                pressed: {
+                    props: {
+                    scale: { x: 0.9, y: 0.9 },
+                    },
+                    duration: 100,
+                },
+            },
+        })
+        this.restartButton.x = 0;
+        this.restartButton.y = 300;
+
+        this.restartButton.onPress.connect(() => {
+            this.screen.mainContainer.removeChildren();
+            this.initGame();
+            this.drawGame();
+        });
+        this.restartButton.visible = false;
+        this.restartButton.enabled = false;
+    }
+
+    private drawGame(){
+        this.screen.mainContainer.addChild(this.board);
+        //topText
+        this.screen.mainContainer.addChild(this.topText);
+
+        this.screen.mainContainer.addChild(this.restartButton);
+
+        this.screen.mainContainer.addChild(this.confetti);
+    }
+
+    private initGame() {
         this.gameState = new GameState;
         this.gameState.currentPlayer = randomBool() ? 1 : 2;
         this.board = new MancalaBoard(this.gameState);
@@ -40,9 +90,8 @@ export class MancalaGame {
                 y: -300,
             anchor: 0.5,
         });
-
-        this.confetti = new ConfettiEmitter();
     }
+
 
     updateTurnText = (player: number) => {
         this.topText.text = `Player ${player}'s Turn`;
@@ -54,17 +103,13 @@ export class MancalaGame {
             const xVal = (-this.screen.width/2) + ((this.screen.width) / 5 * i)
             this.confetti.burst(xVal, -this.screen.height/2, 120);
         }
+        this.restartButton.visible = true;
+        this.restartButton.enabled = true;
     }
 
     public async show(screen: MainScreen): Promise<void> {
         this.screen = screen;
-
-        this.screen.mainContainer.addChild(this.board);
-
-        //topText
-        this.screen.mainContainer.addChild(this.topText);
-
-        this.screen.mainContainer.addChild(this.confetti);
+        this.drawGame();
     }
 
 }
