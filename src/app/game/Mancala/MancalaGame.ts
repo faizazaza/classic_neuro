@@ -53,9 +53,6 @@ export class MancalaGame extends Container {
             this.initGame();
             this.drawGame();
         });
-        
-        this.restartButton.visible = false;
-        this.restartButton.enabled = false;
 
         this.homeButton = new FancyButton({
             defaultView: "icon-home.png",
@@ -76,9 +73,6 @@ export class MancalaGame extends Container {
         this.homeButton.onPress.connect(() => {
             this.onHomePressed?.()
         });
-        
-        this.homeButton.visible = false;
-        this.homeButton.enabled = false;
 
         this.drawGame();
     }
@@ -90,7 +84,13 @@ export class MancalaGame extends Container {
 
         this.addChild(this.restartButton);
 
+        this.restartButton.visible = false;
+        this.restartButton.enabled = false;
+
         this.addChild(this.homeButton);
+
+        this.homeButton.visible = false;
+        this.homeButton.enabled = false;
 
         this.addChild(this.confetti);
     }
