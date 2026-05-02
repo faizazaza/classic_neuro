@@ -34,6 +34,10 @@ export class MainScreen extends Container {
 
     this.gameState = new GameState
 
+    //add one mouse player and one socket player
+    this.gameState.addPlayer("mouse", "0xAE2448", false);
+    this.gameState.addPlayer("socket", "0x72BAA9", true);
+
     this.mainContainer = new Container();
     this.addChild(this.mainContainer);
 
@@ -154,6 +158,7 @@ export class MainScreen extends Container {
   setGame = (game: GameList) => {
     //TODO switch case here
     //also make an abstract game class MancalaGame can extend from
+    this.gameState.currentGame = game;
     this.game = new MancalaGame(this.gameState, screen.width, screen.height);
     this.game.onHomePressed = () => {this.showGameArray()}
     this.reset();

@@ -1,12 +1,21 @@
-import { Container, Text } from "pixi.js";
+import { Text } from "pixi.js";
 import { randomBool } from "../../../engine/utils/random";
 import { GameState } from "../../screens/main/GameState";
 import { MancalaBoard } from "./MancalaBoard";
 import { engine } from "../../getEngine";
 import { ConfettiEmitter } from "../ConfettiEmitter";
 import { FancyButton } from "@pixi/ui";
+import { Game } from "../GameAbstract";
 
-export class MancalaGame extends Container {
+export class MancalaGame extends Game {
+
+    public sendGameStatus(): string {
+        throw new Error("Method not implemented.");
+    }
+    public sendActions(): string {
+        throw new Error("Method not implemented.");
+    }
+
     /** Assets bundles required by this screen */
     public static assetBundles = ["main"];
     //handle turns and game loop
@@ -28,7 +37,7 @@ export class MancalaGame extends Container {
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
         engine().ticker.autoStart = true;
-        this.initGame();
+        this.startGame();
 
         this.confetti = new ConfettiEmitter();
 
@@ -50,7 +59,7 @@ export class MancalaGame extends Container {
 
         this.restartButton.onPress.connect(() => {
             this.removeChildren();
-            this.initGame();
+            this.startGame();
             this.drawGame();
         });
 
@@ -95,7 +104,7 @@ export class MancalaGame extends Container {
         this.addChild(this.confetti);
     }
 
-    private initGame() {
+    public startGame() {
         this.gameState.currentPlayer = randomBool() ? 1 : 2;
         this.board = new MancalaBoard(this.gameState);
 
@@ -111,7 +120,7 @@ export class MancalaGame extends Container {
             text: `Player ${this.gameState.currentPlayer}'s Turn`,
             style: {
             fontSize: 50,
-            fill: this.gameState.currentPlayer == 1 ? this.gameState.player1Colour : this.gameState.player2Colour,
+            fill: this.gameState.getCurrentPlayerColour(),
             padding: 0,
             fontWeight: '800',
             },
@@ -124,10 +133,11 @@ export class MancalaGame extends Container {
 
     updateTurnText = (player: number) => {
         this.topText.text = `Player ${player}'s Turn`;
-        this.topText.style.fill = this.gameState.currentPlayer == 1 ? this.gameState.player1Colour : this.gameState.player2Colour;
+        this.topText.style.fill = this.gameState.getCurrentPlayerColour();
     }
 
     endGame = (winner: number) => {
+        this.topText.style.fill = this.gameState.getPlayerColour(winner-1);
         this.topText.text = `Winner is Player ${winner}!`;
         for (let i = 0; i <= 5; i++) {
             const xVal = (-this.screenWidth/2) + ((this.screenWidth) / 5 * i)
@@ -139,8 +149,7 @@ export class MancalaGame extends Container {
         this.homeButton.visible = true;
         this.homeButton.enabled = true;
 
-        if (winner == 1) this.gameState.player1Wins += 1
-        else this.gameState.player2Wins += 1
+        this.gameState.updateWins(winner)
     }
 
 }

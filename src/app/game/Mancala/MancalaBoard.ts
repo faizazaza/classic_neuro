@@ -202,4 +202,36 @@ export class MancalaBoard extends Container {
             }
         }
     }
+
+    //SocketPlayer actions
+
+    //given a index for a pit (validate), and the correct player is sending the action, call moveSeeds
+    //returns a true value if player can make another turn
+    public async socketMoveSeeds(player: number, index: number){
+        if (this.gameState.currentPlayer == player && 
+            this.gameState.currentPlayer == this.board[index].player &&
+            this.board[index].getSeedHeld() > 0
+        ){
+            const playerGoAgain = await this.moveSeeds(index, this.gameState.currentPlayer)
+            if (!this.checkEnd()){
+                if (!playerGoAgain){
+                    this.nextTurn();
+                    //send board status and send info about turn end
+
+                    this.onTurnChange?.(this.gameState.currentPlayer);  //update this function to send action force if other playe is socket player
+                    
+                }
+                else {
+                    this.refreshButtons()
+                    //send board status and another action force (tell to go again)
+
+                }
+            }
+            else {
+                this.onGameEnd?.(this.gameState.winnerPlayer);
+                //send end message and unregister actions
+
+            }
+        }
+    }
 }

@@ -3,10 +3,12 @@ export class SocketPlayer {
 
     private wbs!: WebSocket
     private name: string
+    private player: number
 
-    constructor(url: string, name: string){
+    constructor(url: string, name: string, player: number){
         this.name = name;
         this.startWebsocket(url)
+        this.player = player;
     }
 
     public startWebsocket = (url: string) => {
@@ -20,7 +22,7 @@ export class SocketPlayer {
         this.wbs = socket;
 
         socket.onopen = () => {
-            console.log(`Connected to Websocket. Name: ${this.name}`);
+            console.log(`Player ${this.player} connected to Websocket. Name: ${this.name}`);
             const msg = {
                 //init msg here
             }
@@ -42,6 +44,10 @@ export class SocketPlayer {
 
                 case "something else":
                 break;
+
+                case "end":
+                    this.closeConnection()
+                break;
             
                 default:
                     //return unhandled exeption
@@ -52,11 +58,11 @@ export class SocketPlayer {
             }
 
         }
-
-        return () => {
-            socket.close();
-        };
         
+    }
+
+    private closeConnection(){
+        this.wbs.close();
     }
 
 

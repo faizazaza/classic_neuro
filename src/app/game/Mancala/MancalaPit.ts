@@ -72,7 +72,7 @@ export class MancalaPit extends Container {
             this.pitWidth,
             this.pitLength,
             15)
-            .stroke({ width: 10, color: this.player == 1 ? this.gameState.player1Colour : this.gameState.player2Colour })
+            .stroke({ width: 10, color: this.gameState.getPlayerColour(this.player-1) })
             .fill({ color: 0x452519 })
 
         if (!this.store){
