@@ -1,10 +1,10 @@
 import { animate } from "motion";
 
-import { randomFloat } from "../../../engine/utils/random";
-import { waitFor } from "../../../engine/utils/waitFor";
+import { randomFloat } from "../../../../engine/utils/random";
+import { waitFor } from "../../../../engine/utils/waitFor";
 
 import { DIRECTION, Logo } from "./Logo";
-import type { MainScreen } from "./MainScreen";
+import type { MainScreen } from "../MainScreen";
 
 export class Bouncer {
   private static readonly LOGO_COUNT = 3;
