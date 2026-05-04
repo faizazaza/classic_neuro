@@ -6,15 +6,9 @@ import { engine } from "../../getEngine";
 import { ConfettiEmitter } from "../ConfettiEmitter";
 import { FancyButton } from "@pixi/ui";
 import { Game } from "../GameAbstract";
+import { ActionType, ForceDataType } from "../../types/ActionTypes";
 
 export class MancalaGame extends Game {
-
-    public sendGameStatus(): string {
-        throw new Error("Method not implemented.");
-    }
-    public sendActions(): string {
-        throw new Error("Method not implemented.");
-    }
 
     /** Assets bundles required by this screen */
     public static assetBundles = ["main"];
@@ -37,7 +31,6 @@ export class MancalaGame extends Game {
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
         engine().ticker.autoStart = true;
-        this.startGame();
 
         this.confetti = new ConfettiEmitter();
 
@@ -83,7 +76,6 @@ export class MancalaGame extends Game {
             this.onHomePressed?.()
         });
 
-        this.drawGame();
     }
 
     private drawGame(){
@@ -128,6 +120,8 @@ export class MancalaGame extends Game {
                 y: -300,
             anchor: 0.5,
         });
+
+        this.drawGame();
     }
 
 
@@ -150,6 +144,27 @@ export class MancalaGame extends Game {
         this.homeButton.enabled = true;
 
         this.gameState.updateWins(winner)
+    }
+
+
+    public sendGameStatus(): string {
+        //send a string of board status, how the game works, which pits belong to the player, what player number they are
+        throw new Error("Method not implemented.");
+    }
+
+    public sendActionList(): ActionType[] {
+        //1 action with payload of pit index/ 6 actions for each pit and then unregister when empty?
+        throw new Error("Method not implemented.");
+    }
+
+    public sendActionForce(): ForceDataType {
+        //when turn starts send this
+        throw new Error("Method not implemented.");
+    }
+
+    public unregisterAction(): string[] {
+        //is this needed?
+        throw new Error("Method not implemented.");
     }
 
 }

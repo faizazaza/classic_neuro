@@ -1,4 +1,5 @@
 import { GameList } from "../../ui/GameList";
+import { SocketPlayer } from "../../websocket/SocketPlayer";
 
 export class GameState {
     public currentGame: GameList | null = null;
@@ -9,14 +10,15 @@ export class GameState {
 
     public players: PlayerState[] = [];
 
-    public addPlayer(name: string, colour: string, isSocket: boolean) {
+    public addPlayer(name: string, colour: string, isSocket: boolean, onSocketMsg: (socketMsg: string) => void = () => {}) {
         const playersLength = this.players.length;
         this.players[playersLength] = {
             playerName: name,
             playerIndex: playersLength + 1,
             playerColour: colour,
             playerWins: 0,
-            isSocketPlayer: isSocket
+            isSocketPlayer: isSocket,
+            socket: isSocket ? new SocketPlayer("...", name, playersLength + 1, onSocketMsg) : undefined
         }
     }
 
@@ -73,4 +75,5 @@ export type PlayerState = {
     playerColour: string,
     playerWins: number,
     isSocketPlayer: boolean,
+    socket?: SocketPlayer,
 }

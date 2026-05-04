@@ -1,3 +1,4 @@
+import { GameMsg } from "../types/ActionTypes";
 
 export class SocketPlayer {
 
@@ -5,10 +6,14 @@ export class SocketPlayer {
     private name: string
     private player: number
 
-    constructor(url: string, name: string, player: number){
+    public onSocketMsg?: () => void;
+
+
+    constructor(url: string, name: string, player: number, onSocketMsg: (socketMsg: string) => void){
         this.name = name;
         this.startWebsocket(url)
         this.player = player;
+        this.onSocketMsg = () => {onSocketMsg}
     }
 
     public startWebsocket = (url: string) => {
@@ -35,35 +40,18 @@ export class SocketPlayer {
 
         //recieves all of the inputs
         socket.onmessage = (event) => {
-            //typing needed here for response probably
-            const msg = JSON.parse(event.data);
-
-            switch (msg) {
-                case "something":
-                break;
-
-                case "something else":
-                break;
-
-                case "end":
-                    this.closeConnection()
-                break;
             
-                default:
-                    //return unhandled exeption
-                    console.log("fell to default")
-                    //probably not safe to do this,,,, remove
-                    console.log(msg)
-                break;
-            }
 
         }
         
     }
 
-    private closeConnection(){
+    public closeConnection(){
         this.wbs.close();
     }
 
+    public sendGameMsg(msg: GameMsg) {
+        this.wbs.send(JSON.stringify(msg))
+    }
 
 }

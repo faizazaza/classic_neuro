@@ -12,6 +12,7 @@ import { MancalaGame } from "../../game/Mancala/MancalaGame";
 import { GameArray } from "./GameArray";
 import { GameList } from "../../ui/GameList";
 import { GameState } from "./GameState";
+import { SocketGameInterface } from "../../websocket/SocketGameInterface";
 
 /** The screen that holds the app */
 export class MainScreen extends Container {
@@ -19,13 +20,13 @@ export class MainScreen extends Container {
   public static assetBundles = ["main"];
 
   private gameState: GameState;
+  private gameInterface: SocketGameInterface;
 
   public mainContainer: Container;
   private pauseButton: FancyButton;
   private settingsButton: FancyButton;
   //private bouncer: Bouncer;
   private gameArray: GameArray;
-  private game!: MancalaGame;
 
   private paused = false;
 
@@ -33,10 +34,7 @@ export class MainScreen extends Container {
     super();
 
     this.gameState = new GameState
-
-    //add one mouse player and one socket player
-    this.gameState.addPlayer("mouse", "0xAE2448", false);
-    this.gameState.addPlayer("socket", "0x72BAA9", true);
+    this.gameInterface = new SocketGameInterface(this.gameState)
 
     this.mainContainer = new Container();
     this.addChild(this.mainContainer);
@@ -155,18 +153,19 @@ export class MainScreen extends Container {
     }
   }
 
-  setGame = (game: GameList) => {
+  setGame = (selectedGame: GameList) => {
     //TODO switch case here
     //also make an abstract game class MancalaGame can extend from
-    this.gameState.currentGame = game;
-    this.game = new MancalaGame(this.gameState, screen.width, screen.height);
-    this.game.onHomePressed = () => {this.showGameArray()}
+    this.gameState.currentGame = selectedGame;
+    const game = new MancalaGame(this.gameState, screen.width, screen.height);
+    game.onHomePressed = () => {this.showGameArray()}
     this.reset();
-    this.mainContainer.addChild(this.game);
+    this.mainContainer.addChild(game);
+    this.gameInterface.startGame(game);
   }
 
   showGameArray = () => {
-    this.game.destroy();
+    this.gameInterface.endGame();
     this.reset();
     this.mainContainer.addChild(this.gameArray);
   }
