@@ -1,5 +1,5 @@
 import { Container } from "pixi.js";
-import { ActionType, ForceDataType } from "../types/ActionTypes";
+import { ActionType, GameMsg, priorityEnum } from "../types/ActionTypes";
 
 //abstract for all games to inherit from
 //define the functions all games should have from here
@@ -15,9 +15,15 @@ export abstract class Game extends Container {
 
     public abstract startGame(): void;
     public abstract endGame(winner: number): void;
-    public abstract sendGameStatus(): string;
-    public abstract sendActionList(): ActionType[];
-    public abstract sendActionForce(): ForceDataType;
-    public abstract unregisterAction(): string[];
+
+    public abstract collectGameStatus(): string;
+    public abstract collectActionList(): ActionType[];
+
+    public abstract sendActionList(actionList: ActionType[]):  GameMsg;
+    public abstract sendActionForce(stateVal: string, queryVal: string, actionList: string[], priorityVal: priorityEnum): GameMsg;
+    public abstract sendActionResult(actionId: string, successVal: boolean, messageVal?: string): GameMsg;
+    public abstract unregisterAction(actionList: string[]): GameMsg;
+
+    public abstract handleAction(playerId: number, actionId: number, actionName: string, data: string): void;
 
 }

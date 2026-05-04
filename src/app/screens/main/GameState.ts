@@ -22,6 +22,8 @@ export class GameState {
         }
     }
 
+    public getGameName(){return this.currentGame?.toString() ?? "no game found"}
+
     //holy methods????
     public updateWins(winnerIndex: number){
         this.players[winnerIndex-1].playerWins += 1;

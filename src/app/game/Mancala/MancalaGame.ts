@@ -6,7 +6,7 @@ import { engine } from "../../getEngine";
 import { ConfettiEmitter } from "../ConfettiEmitter";
 import { FancyButton } from "@pixi/ui";
 import { Game } from "../GameAbstract";
-import { ActionType, ForceDataType } from "../../types/ActionTypes";
+import { ActionType, GameMsg, priorityEnum } from "../../types/ActionTypes";
 
 export class MancalaGame extends Game {
 
@@ -24,6 +24,12 @@ export class MancalaGame extends Game {
     private screenHeight: number;
 
     public onHomePressed?: () => void;
+
+    //should be overriden with method in SocketGameInterface
+    public sendActionList: (actionList: ActionType[]) => GameMsg;
+    public sendActionForce: (stateVal: string, queryVal: string, actionList: string[], priorityVal: priorityEnum) => GameMsg;
+    public sendActionResult: (actionId: string, successVal: boolean, messageVal?: string) => GameMsg
+    public unregisterAction: (actionList: string[]) => GameMsg
 
     constructor(state: GameState, screenWidth: number, screenHeight: number){
         super();
@@ -76,6 +82,12 @@ export class MancalaGame extends Game {
             this.onHomePressed?.()
         });
 
+        //temp functions to start init <- these functions need to be overriden!
+        this.sendActionList = () => {throw new Error("Method not implemented.");}
+        this.sendActionForce = () => {throw new Error("Method not implemented.");}
+        this.sendActionResult = () => {throw new Error("Method not implemented.");}
+        this.unregisterAction = () => {throw new Error("Method not implemented.");}
+
     }
 
     private drawGame(){
@@ -122,6 +134,12 @@ export class MancalaGame extends Game {
         });
 
         this.drawGame();
+
+        //test overrides
+        // this.sendActionList([]);
+        // this.sendActionForce("", "", [], priorityEnum.low);
+        // this.sendActionResult("", false);
+        // this.unregisterAction([]);
     }
 
 
@@ -147,23 +165,20 @@ export class MancalaGame extends Game {
     }
 
 
-    public sendGameStatus(): string {
+    public collectGameStatus(): string {
         //send a string of board status, how the game works, which pits belong to the player, what player number they are
         throw new Error("Method not implemented.");
     }
 
-    public sendActionList(): ActionType[] {
+    public collectActionList(): ActionType[] {
         //1 action with payload of pit index/ 6 actions for each pit and then unregister when empty?
         throw new Error("Method not implemented.");
     }
 
-    public sendActionForce(): ForceDataType {
-        //when turn starts send this
-        throw new Error("Method not implemented.");
-    }
-
-    public unregisterAction(): string[] {
-        //is this needed?
+    //parse data sent by socketPlayer
+    // if correct, run the action
+    //if correct, throw error ? or just call sendActionResult with success = false
+    public handleAction(playerId: number, actionId: number, actionName: string, data: string): void {
         throw new Error("Method not implemented.");
     }
 

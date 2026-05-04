@@ -59,8 +59,15 @@ export type ForceDataType = {
     state?: string,
     query: string,
     ephemeral_context?: boolean, // Defaults to false
-    priority: "low" | "medium" | "high" | "critical", // Defaults to "low"
+    priority: priorityEnum, // Defaults to "low"
     action_names: string[]
+}
+
+export enum priorityEnum {
+    low = "low",
+    medium = "medium",
+    high = "high",
+    critical = "critical"
 }
 
 export type ResultType = {
