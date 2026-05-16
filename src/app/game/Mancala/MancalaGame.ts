@@ -7,6 +7,7 @@ import { ConfettiEmitter } from "../ConfettiEmitter";
 import { FancyButton } from "@pixi/ui";
 import { Game } from "../GameAbstract";
 import { ActionType, GameMsg, priorityEnum } from "../../types/ActionTypes";
+import { MancalaActions } from "./MancalaActions";
 
 export class MancalaGame extends Game {
 
@@ -179,6 +180,11 @@ export class MancalaGame extends Game {
     // if correct, run the action
     //if correct, throw error ? or just call sendActionResult with success = false
     public handleAction(playerId: number, actionId: number, actionName: string, data: string): void {
+        //check if right player, check if it is an actual action, check if oob/actually a number, check if empty
+        //return a returnType <- also needs to update opponent with context if an update is made (in this function??)
+        if (actionName in MancalaActions){
+
+        }
         throw new Error("Method not implemented.");
     }
 
