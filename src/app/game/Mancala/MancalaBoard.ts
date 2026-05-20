@@ -69,7 +69,7 @@ export class MancalaBoard extends Container {
                     this.buttonFunc(i)
                 }
 
-                if (player != this.gameState.currentPlayer) pit.disableButton();
+                if (player != this.gameState.getCurrentPlayer()) pit.disableButton();
             }
 
             this.addChild(pit)
@@ -81,18 +81,18 @@ export class MancalaBoard extends Container {
     }
 
     buttonFunc = async (index: number) => {
-        const playerGoAgain = await this.moveSeeds(index, this.gameState.currentPlayer)
+        const playerGoAgain = await this.moveSeeds(index, this.gameState.getCurrentPlayer())
         if (!this.checkEnd()){
             if (!playerGoAgain){
                 this.nextTurn();
-                this.onTurnChange?.(this.gameState.currentPlayer);
+                this.onTurnChange?.(this.gameState.getCurrentPlayer());
             }
             else {
                 this.refreshButtons()
             }
         }
         else {
-            this.onGameEnd?.(this.gameState.winnerPlayer);
+            this.onGameEnd?.(this.gameState.getWinnerPlayer());
         }
     }
 
@@ -162,30 +162,29 @@ export class MancalaBoard extends Container {
         //find winner
         const player1Score = this.board[6].getSeedHeld();
         const player2Score = this.board[13].getSeedHeld();
-        if (player1Score > player2Score) this.gameState.winnerPlayer = 1;
-        else if (player2Score > player1Score) this.gameState.winnerPlayer = 2;
+        if (player1Score > player2Score) this.gameState.updateWinner(1);
+        else if (player2Score > player1Score) this.gameState.updateWinner(2);
         //else tie
         //remove all seeds so it makes sense visually
         this.board.forEach((pit) => {
             if (!pit.isStore()){pit.removeSeeds();}
         })
         this.disableAllButtons();
-        this.gameState.gameActive = false;
+        this.gameState.gameEnd();
         
     }
 
     private nextTurn(): void {
         //change to next player
-        this.gameState.currentPlayer = this.gameState.currentPlayer == 1 ? 2 : 1;
+        this.gameState.updateTurn()
         //handle buttons
         this.refreshButtons();
-        this.gameState.turns++;
     }
 
     private refreshButtons(): void {
         for (let i = 0; i < MancalaBoard.boardSize; i++) {
             if (!this.board[i].isStore()){
-                if (this.board[i].player == this.gameState.currentPlayer && this.board[i].getSeedHeld() != 0){
+                if (this.board[i].player == this.gameState.getCurrentPlayer() && this.board[i].getSeedHeld() != 0){
                     this.board[i].enableButton()
                 }
                 else {
@@ -208,17 +207,17 @@ export class MancalaBoard extends Container {
     //given a index for a pit (validate), and the correct player is sending the action, call moveSeeds
     //returns a true value if player can make another turn
     public async socketMoveSeeds(player: number, index: number){
-        if (this.gameState.currentPlayer == player && 
-            this.gameState.currentPlayer == this.board[index].player &&
+        if (this.gameState.getCurrentPlayer() == player && 
+            this.gameState.getCurrentPlayer() == this.board[index].player &&
             this.board[index].getSeedHeld() > 0
         ){
-            const playerGoAgain = await this.moveSeeds(index, this.gameState.currentPlayer)
+            const playerGoAgain = await this.moveSeeds(index, this.gameState.getCurrentPlayer())
             if (!this.checkEnd()){
                 if (!playerGoAgain){
                     this.nextTurn();
                     //send board status and send info about turn end
 
-                    this.onTurnChange?.(this.gameState.currentPlayer);  //update this function to send action force if other playe is socket player
+                    this.onTurnChange?.(this.gameState.getCurrentPlayer());  //update this function to send action force if other playe is socket player
                     
                 }
                 else {
@@ -228,7 +227,7 @@ export class MancalaBoard extends Container {
                 }
             }
             else {
-                this.onGameEnd?.(this.gameState.winnerPlayer);
+                this.onGameEnd?.(this.gameState.getWinnerPlayer());
                 //send end message and unregister actions
 
             }

@@ -1,19 +1,19 @@
-import { GameMsg } from "../types/ActionTypes";
+import { GameMsg, ServerMsg } from "../types/ActionTypes";
 
 export class SocketPlayer {
 
     private wbs!: WebSocket
-    private name: string
-    private player: number
+    private playerName: string
+    private playerId: number
 
-    public onSocketMsg?: () => void;
+    public onSocketMsg!: (msg: ServerMsg, playerId: number, playerName: string) => void;
 
 
-    constructor(url: string, name: string, player: number, onSocketMsg: (socketMsg: string) => void){
-        this.name = name;
+    constructor(url: string, name: string, player: number, onSocketMsg: (msg: ServerMsg, playerId: number, playerName: string) => void){
+        this.playerName = name;
         this.startWebsocket(url)
-        this.player = player;
-        this.onSocketMsg = () => {onSocketMsg}
+        this.playerId = player;
+        this.onSocketMsg = (msg: ServerMsg, playerId: number, playerName: string) => {onSocketMsg(msg, playerId, playerName)}
     }
 
     public startWebsocket = (url: string) => {
@@ -27,7 +27,7 @@ export class SocketPlayer {
         this.wbs = socket;
 
         socket.onopen = () => {
-            console.log(`Player ${this.player} connected to Websocket. Name: ${this.name}`);
+            console.log(`Player ${this.playerId} connected to Websocket. Name: ${this.playerName}`);
             const msg = {
                 //init msg here
             }
@@ -40,8 +40,13 @@ export class SocketPlayer {
 
         //recieves all of the inputs
         socket.onmessage = (event) => {
+            const msg: ServerMsg = JSON.parse(event.data);  
+            //this is blind faith that ill be sent something that will fit this, #
+            // but it doesnt i need to be able to send an action id to stay that its bad,,, 
+            // which i can't guarantee would be there?
             
-
+            //ALSO SEND PLAYER NUMBER & NAME TO THE GAME
+            this.onSocketMsg(msg, this.playerId, this.playerName)
         }
         
     }

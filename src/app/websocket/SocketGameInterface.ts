@@ -1,6 +1,6 @@
 import { Game } from "../game/GameAbstract";
 import { GameState } from "../screens/main/GameState";
-import { ActionType, CommandEnum, GameMsg, priorityEnum } from "../types/ActionTypes";
+import { ActionType, CommandEnum, GameMsg, priorityEnum, ServerMsg } from "../types/ActionTypes";
 
 //sends messages to and from socket players
 //socket players call commands from here
@@ -37,7 +37,7 @@ export class SocketGameInterface{
                     command: CommandEnum.startup,
                     game: this.gameState.getGameName()
                 }
-                return msg;
+                player.socket?.sendGameMsg(msg);
             }
         }
     }
@@ -61,7 +61,7 @@ export class SocketGameInterface{
                 silent: isSilent
             }
         }
-        return msg;
+        return msg;//sendToAPlayer()
     }
 
     public sendActionList(actionList: ActionType[]): GameMsg {
@@ -73,7 +73,7 @@ export class SocketGameInterface{
                 actions: actionList
             }
         }
-        return msg
+        return msg//sendToAPlayer()
     }
 
     public sendActionForce(stateVal: string, queryVal: string, actionList: string[], priorityVal: priorityEnum): GameMsg {
@@ -88,7 +88,7 @@ export class SocketGameInterface{
                 action_names: actionList
             }
         }
-        return msg
+        return msg//sendToAPlayer()
     }
 
     public sendActionResult(actionId: string, successVal: boolean, messageVal?: string): GameMsg {
@@ -102,7 +102,7 @@ export class SocketGameInterface{
                 message: messageVal
             }
         }
-        return msg
+        return msg//sendToAPlayer()
     }
 
     public unregisterAction(actionList: string[]): GameMsg {
@@ -114,29 +114,24 @@ export class SocketGameInterface{
                 action_names: actionList
             }
         }
-        return msg
+        return msg //sendToAPlayer()
     }
 
     //TODO: parse msgs from socket players and handle incorrect schemas
     //game-based types? maybe just let the game return the error
-    public handleSocketMsg(socketMsg: string) {
-        //typing needed here for response probably
-        const msg = JSON.parse(socketMsg);
-
-        switch (msg) {
-            case "something":
-            break;
-
-            case "something else":
-            break;
-        
-            default:
-                //return unhandled exeption
-                console.log("fell to default")
-                //probably not safe to do this,,,, remove
-                console.log(msg)
-            break;
+    public handleSocketMsg(msg: ServerMsg, playerId: number, playerName: string) {
+        //check if message is from the right player - use gamestate here
+        if (playerId != this.gameState.getCurrentPlayer()){
+            //SEND ERROR TO THE PLAYER WEBSOCKET
         }
+
+        //pass msg to the game
+        this.currGame.handleAction(msg, playerId, playerName)
+
+    }
+
+    private sendToAPlayer(playerId: number){
+
     }
 
 }

@@ -1,5 +1,5 @@
 import { Container } from "pixi.js";
-import { ActionType, GameMsg, priorityEnum } from "../types/ActionTypes";
+import { ActionType, GameMsg, priorityEnum, ServerMsg } from "../types/ActionTypes";
 
 //abstract for all games to inherit from
 //define the functions all games should have from here
@@ -24,6 +24,6 @@ export abstract class Game extends Container {
     public abstract sendActionResult(actionId: string, successVal: boolean, messageVal?: string): GameMsg;
     public abstract unregisterAction(actionList: string[]): GameMsg;
 
-    public abstract handleAction(playerId: number, actionId: number, actionName: string, data: string): void;
+    public abstract handleAction(msg: ServerMsg, playerId: number, playerName: string): void;
 
 }

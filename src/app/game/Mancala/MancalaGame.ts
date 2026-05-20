@@ -1,12 +1,11 @@
 import { Text } from "pixi.js";
-import { randomBool } from "../../../engine/utils/random";
 import { GameState } from "../../screens/main/GameState";
 import { MancalaBoard } from "./MancalaBoard";
 import { engine } from "../../getEngine";
 import { ConfettiEmitter } from "../ConfettiEmitter";
 import { FancyButton } from "@pixi/ui";
 import { Game } from "../GameAbstract";
-import { ActionType, GameMsg, priorityEnum } from "../../types/ActionTypes";
+import { ActionType, GameMsg, priorityEnum, ServerMsg } from "../../types/ActionTypes";
 import { MancalaActions } from "./MancalaActions";
 
 export class MancalaGame extends Game {
@@ -80,6 +79,7 @@ export class MancalaGame extends Game {
         this.homeButton.y = 300;
 
         this.homeButton.onPress.connect(() => {
+            this.gameState.gameEnd();
             this.onHomePressed?.()
         });
 
@@ -110,7 +110,7 @@ export class MancalaGame extends Game {
     }
 
     public startGame() {
-        this.gameState.currentPlayer = randomBool() ? 1 : 2;
+        this.gameState.randomPlayerAssign();
         this.board = new MancalaBoard(this.gameState);
 
         this.board.onTurnChange = (player) => {
@@ -122,7 +122,7 @@ export class MancalaGame extends Game {
         };
 
         this.topText = new Text({
-            text: `Player ${this.gameState.currentPlayer}'s Turn`,
+            text: `Player ${this.gameState.getCurrentPlayer()}'s Turn`,
             style: {
             fontSize: 50,
             fill: this.gameState.getCurrentPlayerColour(),
@@ -162,7 +162,7 @@ export class MancalaGame extends Game {
         this.homeButton.visible = true;
         this.homeButton.enabled = true;
 
-        this.gameState.updateWins(winner)
+        this.gameState.updateWinner(winner)
     }
 
 
@@ -179,12 +179,13 @@ export class MancalaGame extends Game {
     //parse data sent by socketPlayer
     // if correct, run the action
     //if correct, throw error ? or just call sendActionResult with success = false
-    public handleAction(playerId: number, actionId: number, actionName: string, data: string): void {
-        //check if right player, check if it is an actual action, check if oob/actually a number, check if empty
+    public handleAction(msg: ServerMsg, playerId: number, playerName: string): void {
+        //should be right player action here, check if it is an actual action, check if oob/actually a number, check if empty
         //return a returnType <- also needs to update opponent with context if an update is made (in this function??)
-        if (actionName in MancalaActions){
+        if (msg.data.name in MancalaActions){
 
         }
+        
         throw new Error("Method not implemented.");
     }
 
