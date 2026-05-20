@@ -1,12 +1,11 @@
 import { Container, Graphics } from "pixi.js";
 import { MancalaPit } from "./MancalaPit";
-import { waitFor } from "../../../engine/utils/waitFor";
 import { GameState } from "../../screens/main/GameState";
+import { GameMsg, ServerMsg } from "../../types/ActionTypes";
 
 
 export class MancalaBoard extends Container {
     //board of 6 x 2 pits and 2 capture pits
-    private static readonly WAIT_DURATION = 0.25;
 
     private static readonly boardSize = 14;
     public board: MancalaPit[];
@@ -80,8 +79,8 @@ export class MancalaBoard extends Container {
         }
     }
 
-    buttonFunc = async (index: number) => {
-        const playerGoAgain = await this.moveSeeds(index, this.gameState.getCurrentPlayer())
+    buttonFunc = (index: number) => {
+        const playerGoAgain = this.moveSeeds(index, this.gameState.getCurrentPlayer())
         if (!this.checkEnd()){
             if (!playerGoAgain){
                 this.nextTurn();
@@ -109,15 +108,14 @@ export class MancalaBoard extends Container {
     //when a pit is selected, fill in the next pits by the number of seeds in the selected pit
     //wrap round to 0 after 13
     // player 1 skips 13th pit player 2 skips 6th pit
-    public async moveSeeds(pitChosen: number, player: number): Promise<boolean> {
+    public moveSeeds(pitChosen: number, player: number): boolean {
         let seeds = this.board[pitChosen].removeSeeds();
         let pitIndex = pitChosen;
         for (let i = 1; i < seeds+1; i++) {
             pitIndex += 1;
             if ((pitIndex == 13 && player == 1) || (pitIndex == 6 && player == 2)) pitIndex ++;
             pitIndex = pitIndex % MancalaBoard.boardSize;
-            await waitFor(MancalaBoard.WAIT_DURATION);
-            this.board[pitIndex].addSeed();
+            this.board[pitIndex].addSeed(i);
         }
        //check if player gets an extra turn
         if (this.board[pitIndex].isStore()){
@@ -206,31 +204,30 @@ export class MancalaBoard extends Container {
 
     //given a index for a pit (validate), and the correct player is sending the action, call moveSeeds
     //returns a true value if player can make another turn
-    public async socketMoveSeeds(player: number, index: number){
-        if (this.gameState.getCurrentPlayer() == player && 
-            this.gameState.getCurrentPlayer() == this.board[index].player &&
-            this.board[index].getSeedHeld() > 0
-        ){
-            const playerGoAgain = await this.moveSeeds(index, this.gameState.getCurrentPlayer())
-            if (!this.checkEnd()){
-                if (!playerGoAgain){
-                    this.nextTurn();
-                    //send board status and send info about turn end
+    public socketMoveSeeds(pit: number, msg: ServerMsg, player: number): GameMsg {
+        const playerGoAgain = this.moveSeeds(pit, this.gameState.getCurrentPlayer())
+        if (!this.checkEnd()){
+            if (!playerGoAgain){
+                this.nextTurn();
+                //send board status and send info about turn end
 
-                    this.onTurnChange?.(this.gameState.getCurrentPlayer());  //update this function to send action force if other playe is socket player
-                    
-                }
-                else {
-                    this.refreshButtons()
-                    //send board status and another action force (tell to go again)
-
-                }
+                this.onTurnChange?.(this.gameState.getCurrentPlayer());  //update this function to send action force if other playe is socket player
+                
             }
             else {
-                this.onGameEnd?.(this.gameState.getWinnerPlayer());
-                //send end message and unregister actions
+                this.refreshButtons()
+                //send board status and another action force (tell to go again)
 
             }
         }
+        else {
+            this.onGameEnd?.(this.gameState.getWinnerPlayer());
+            //send end message and unregister actions
+
+        }
+    }
+
+    public isPitEmpty(pitIndex: number){
+        return this.board[pitIndex].getSeedHeld() == 0;
     }
 }

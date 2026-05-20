@@ -5,8 +5,9 @@ import { engine } from "../../getEngine";
 import { ConfettiEmitter } from "../ConfettiEmitter";
 import { FancyButton } from "@pixi/ui";
 import { Game } from "../GameAbstract";
-import { ActionType, GameMsg, priorityEnum, ServerMsg } from "../../types/ActionTypes";
-import { MancalaActions } from "./MancalaActions";
+import { ActionType, CommandEnum, GameMsg, priorityEnum, ServerMsg } from "../../types/ActionTypes";
+import { MancalaActions, mancalaSocketTexts, pickResponseSchema } from "./MancalaActions";
+import { GameList } from "../../ui/GameList";
 
 export class MancalaGame extends Game {
 
@@ -26,10 +27,10 @@ export class MancalaGame extends Game {
     public onHomePressed?: () => void;
 
     //should be overriden with method in SocketGameInterface
-    public sendActionList: (actionList: ActionType[]) => GameMsg;
-    public sendActionForce: (stateVal: string, queryVal: string, actionList: string[], priorityVal: priorityEnum) => GameMsg;
-    public sendActionResult: (actionId: string, successVal: boolean, messageVal?: string) => GameMsg
-    public unregisterAction: (actionList: string[]) => GameMsg
+    public sendActionList: (playerId: number, actionList: ActionType[]) => void;
+    public sendActionForce: (playerId: number, stateVal: string, queryVal: string, actionList: string[], priorityVal: priorityEnum) => void;
+    public sendActionResult: (playerId: number, actionId: string, successVal: boolean, messageVal?: string) => void
+    public unregisterAction: (playerId: number, actionList: string[]) => void
 
     constructor(state: GameState, screenWidth: number, screenHeight: number){
         super();
@@ -178,15 +179,54 @@ export class MancalaGame extends Game {
 
     //parse data sent by socketPlayer
     // if correct, run the action
-    //if correct, throw error ? or just call sendActionResult with success = false
-    public handleAction(msg: ServerMsg, playerId: number, playerName: string): void {
-        //should be right player action here, check if it is an actual action, check if oob/actually a number, check if empty
+    //if theres an issue, return an error
+    public handleAction(msg: ServerMsg, playerId: number, playerName: string): GameMsg {
+        //should be right player action here, check if it is an actual action, 
         //return a returnType <- also needs to update opponent with context if an update is made (in this function??)
-        if (msg.data.name in MancalaActions){
-
+        if (msg.data.name in MancalaActions){   //theres like only one but it sets precedent or whatever
+            //should have a switch case here, but theres only one action in this game
+            //check if inavlid schema, oob/not a number, or if pit is empty
+            const parseResult = pickResponseSchema.safeParse(msg.data.data);
+            if (!parseResult.success){
+                return this.buildResultMsg(msg.data.id, false, mancalaSocketTexts.errorInvalidSchema(msg.data.name))
+            }
+            const pit = parseResult.data.pit
+            if (pit > 13 || pit < 0){
+                return this.buildResultMsg(msg.data.id, false, mancalaSocketTexts.errorInvalidPit(pit))
+            }
+            const pitOwner = pit < 7 ? 1 : 2;
+            if (pitOwner != this.gameState.getCurrentPlayer()){
+                return this.buildResultMsg(msg.data.id, false, mancalaSocketTexts.errorOOB(pit))
+            }
+            if (this.board.isPitEmpty(pit)){
+                return this.buildResultMsg(msg.data.id, false, mancalaSocketTexts.errorEmpty(pit))
+            }
+            return this.executeAction(pit, msg, playerId, playerName);
         }
-        
-        throw new Error("Method not implemented.");
+        else {
+            //non-existant action / not a mancala action
+            return this.buildResultMsg(msg.data.id, false, mancalaSocketTexts.errorInvalidAction());
+        }
+    }
+
+    //action has been completely validated by the time it gets here
+    private executeAction(pit: number, msg: ServerMsg, playerId: number, playerName: string): GameMsg {
+        //when the player needs to do another turn, both an action result success and action force needs to be sent
+        //i could just send a failed action to force another try but that seems mean
+        return this.board.socketMoveSeeds(pit, msg, playerId)
+    }
+
+    private buildResultMsg(actionId: string, success: boolean, message: string): GameMsg {
+        const gameMsg: GameMsg = {
+            command: CommandEnum.result,
+            game: GameList.Mancala, //hmm? or just project name in general?
+            data: {
+                id: actionId,
+                success: success,
+                message: message
+            }
+        }
+        return gameMsg;
     }
 
 }

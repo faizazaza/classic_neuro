@@ -2,13 +2,15 @@ import { Container, Graphics, Text } from "pixi.js";
 import { engine } from "../../getEngine";
 import { FancyButton } from "@pixi/ui";
 import { GameState } from "../../screens/main/GameState";
+import { waitFor } from "../../../engine/utils/waitFor";
 
 export class MancalaPit extends Container {
+    private static readonly WAIT_DURATION = 0.25;
 
     private gameState: GameState;
 
     private index: number;
-    public store: boolean;
+    private store: boolean;
     private seedHeld: number;
     public selectable;
     public player: number;
@@ -49,10 +51,10 @@ export class MancalaPit extends Container {
         return seeds;
     }
 
-    public addSeed(plusSeed = 1): void {
+    public addSeed(numUpdated: number, plusSeed = 1): void {
         this.seedHeld += plusSeed;
         this.seedText.text = this.seedHeld
-        this.animateText(this.seedText)
+        this.animateText(this.seedText, numUpdated)
     }
 
     public getSeedHeld(): number {
@@ -137,7 +139,8 @@ export class MancalaPit extends Container {
         this.pitButton.enabled = false;
     }
 
-    private animateText(text: Text) {
+    private async animateText(text: Text, numUpdated: number) {
+        await waitFor(MancalaPit.WAIT_DURATION * numUpdated);  //visual wait
         let life = 60;
 
         const tickerFunc = () => {

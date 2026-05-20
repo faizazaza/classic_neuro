@@ -1,7 +1,8 @@
 import { ActionType } from "../../types/ActionTypes";
+import { z } from "zod";
 
 
-export const socketTexts = {
+export const mancalaSocketTexts = {
     start: (startPit: number, endPit: number, storeNum: number, boardState: string) => 
         `To play Mancala, you must take turns selecting one of your pits and distributing its seeds one by one into the following pits around the board.
             If your last seed lands in your store, you get another turn.
@@ -16,7 +17,9 @@ export const socketTexts = {
             Your store is ${storeNum} and holds ${storedSeeds} 
             You cannot select a pit with no seeds. 
             Here is the current state of the board: ${boardState}`,
-    errorInvalid: (chosenPit: number) => `Action rejected: The given pit ${chosenPit} is not a valid pit, please try again.`,
+    errorInvalidSchema: (actionName: string) => `Action rejected: The data given does not match the schema for action ${actionName}`,
+    errorInvalidAction: () => `Action rejected: The given action is not for Mancala.`,
+    errorInvalidPit: (chosenPit: number) => `Action rejected: The given pit ${chosenPit} is not a valid pit, please try again.`,
     errorOOB: (chosenPit: number) => `Action rejected: The given pit ${chosenPit} does not belong to you, please try again.`,
     errorEmpty: (chosenPit: number) => `Action rejected: The given pit ${chosenPit} does not contain any seeds, please try again.`,
     errorTurn: () => `Action rejected: It is not your turn yet.`,
@@ -38,11 +41,12 @@ export enum MancalaActions {
     pick_pit = "pick_pit"
 }
 
+export const pickResponseSchema = z.object({
+    pit: z.number()
+})
+
 export const pickPitAction: ActionType = {
     name: MancalaActions.pick_pit,
-    description: socketTexts.pickPit(),
-    schema: {
-        type: "object",
-        pit: "number"   //?
-    }
+    description: mancalaSocketTexts.pickPit(),
+    schema: pickResponseSchema
 }

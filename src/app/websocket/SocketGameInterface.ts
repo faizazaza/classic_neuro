@@ -52,7 +52,7 @@ export class SocketGameInterface{
     //methods to be called from the games
 
     //get game status from a Game
-    public sendGameContext(message: string, isSilent: boolean = false): GameMsg {
+    public sendGameContext(playerId: number, message: string, isSilent: boolean = false) {
         const msg: GameMsg = {
             command: CommandEnum.context,
             game: this.gameState.getGameName(),
@@ -61,10 +61,10 @@ export class SocketGameInterface{
                 silent: isSilent
             }
         }
-        return msg;//sendToAPlayer()
+        this.sendToAPlayer(playerId, msg);
     }
 
-    public sendActionList(actionList: ActionType[]): GameMsg {
+    public sendActionList(playerId: number, actionList: ActionType[]) {
         console.log("test sendActionList")
         const msg: GameMsg = {
             command: CommandEnum.register,
@@ -73,10 +73,10 @@ export class SocketGameInterface{
                 actions: actionList
             }
         }
-        return msg//sendToAPlayer()
+        this.sendToAPlayer(playerId, msg);
     }
 
-    public sendActionForce(stateVal: string, queryVal: string, actionList: string[], priorityVal: priorityEnum): GameMsg {
+    public sendActionForce(playerId: number, stateVal: string, queryVal: string, actionList: string[], priorityVal: priorityEnum) {
         console.log("test sendActionForce")
         const msg: GameMsg = {
             command: CommandEnum.force,
@@ -88,10 +88,10 @@ export class SocketGameInterface{
                 action_names: actionList
             }
         }
-        return msg//sendToAPlayer()
+        this.sendToAPlayer(playerId, msg);
     }
 
-    public sendActionResult(actionId: string, successVal: boolean, messageVal?: string): GameMsg {
+    public sendActionResult(playerId: number, actionId: string, successVal: boolean, messageVal?: string) {
         console.log("test sendActionResult")
         const msg: GameMsg = {
             command: CommandEnum.result,
@@ -102,10 +102,10 @@ export class SocketGameInterface{
                 message: messageVal
             }
         }
-        return msg//sendToAPlayer()
+        this.sendToAPlayer(playerId, msg);
     }
 
-    public unregisterAction(actionList: string[]): GameMsg {
+    public unregisterAction(playerId: number, actionList: string[]) {
         console.log("test unregisterAction")
         const msg: GameMsg = {
             command: CommandEnum.unregister,
@@ -114,7 +114,7 @@ export class SocketGameInterface{
                 action_names: actionList
             }
         }
-        return msg //sendToAPlayer()
+        this.sendToAPlayer(playerId, msg);
     }
 
     //TODO: parse msgs from socket players and handle incorrect schemas
@@ -122,7 +122,7 @@ export class SocketGameInterface{
     public handleSocketMsg(msg: ServerMsg, playerId: number, playerName: string) {
         //check if message is from the right player - use gamestate here
         if (playerId != this.gameState.getCurrentPlayer()){
-            //SEND ERROR TO THE PLAYER WEBSOCKET
+            //TODO: SEND ERROR TO THE PLAYER WEBSOCKET
         }
 
         //pass msg to the game
@@ -130,8 +130,10 @@ export class SocketGameInterface{
 
     }
 
-    private sendToAPlayer(playerId: number){
-
+    //given a playerId (base 1), send a message to the socket
+    private sendToAPlayer(playerId: number, sendMsg: GameMsg){
+        //do we definitely know if this is a socket player at this point?
+        this.gameState.players[playerId-1].socket?.sendGameMsg(sendMsg);
     }
 
 }
