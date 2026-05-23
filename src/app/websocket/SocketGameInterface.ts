@@ -22,6 +22,7 @@ export class SocketGameInterface{
     public startGame(newGame: Game) {
         this.currGame = newGame;
         //assign override functions
+        this.currGame.sendGameContext = this.sendGameContext;
         this.currGame.sendActionList = this.sendActionList;
         this.currGame.sendActionForce = this.sendActionForce;
         this.currGame.sendActionResult = this.sendActionResult;
@@ -53,6 +54,7 @@ export class SocketGameInterface{
 
     //get game status from a Game
     public sendGameContext(playerId: number, message: string, isSilent: boolean = false) {
+        console.log(`test sendGameContext ${message}`)
         const msg: GameMsg = {
             command: CommandEnum.context,
             game: this.gameState.getGameName(),
@@ -61,11 +63,11 @@ export class SocketGameInterface{
                 silent: isSilent
             }
         }
-        this.sendToAPlayer(playerId, msg);
+        this.sendMsgToPlayer(playerId, msg);
     }
 
     public sendActionList(playerId: number, actionList: ActionType[]) {
-        console.log("test sendActionList")
+        console.log(`test sendActionList ${actionList}`)
         const msg: GameMsg = {
             command: CommandEnum.register,
             game: this.gameState.getGameName(),
@@ -73,11 +75,11 @@ export class SocketGameInterface{
                 actions: actionList
             }
         }
-        this.sendToAPlayer(playerId, msg);
+        this.sendMsgToPlayer(playerId, msg);
     }
 
     public sendActionForce(playerId: number, stateVal: string, queryVal: string, actionList: string[], priorityVal: priorityEnum) {
-        console.log("test sendActionForce")
+        console.log(`test sendActionForce ${stateVal} ------ ${queryVal} ------ ${actionList}`)
         const msg: GameMsg = {
             command: CommandEnum.force,
             game: this.gameState.getGameName(),
@@ -88,11 +90,11 @@ export class SocketGameInterface{
                 action_names: actionList
             }
         }
-        this.sendToAPlayer(playerId, msg);
+        this.sendMsgToPlayer(playerId, msg);
     }
 
     public sendActionResult(playerId: number, actionId: string, successVal: boolean, messageVal?: string) {
-        console.log("test sendActionResult")
+        console.log(`test sendActionResult ${successVal} - ${messageVal}`)
         const msg: GameMsg = {
             command: CommandEnum.result,
             game: this.gameState.getGameName(),
@@ -102,11 +104,11 @@ export class SocketGameInterface{
                 message: messageVal
             }
         }
-        this.sendToAPlayer(playerId, msg);
+        this.sendMsgToPlayer(playerId, msg);
     }
 
     public unregisterAction(playerId: number, actionList: string[]) {
-        console.log("test unregisterAction")
+         console.log(`test sendActionResult ${actionList}`)
         const msg: GameMsg = {
             command: CommandEnum.unregister,
             game: this.gameState.getGameName(),
@@ -114,25 +116,28 @@ export class SocketGameInterface{
                 action_names: actionList
             }
         }
-        this.sendToAPlayer(playerId, msg);
+        this.sendMsgToPlayer(playerId, msg);
     }
 
-    //TODO: parse msgs from socket players and handle incorrect schemas
     //game-based types? maybe just let the game return the error
     public handleSocketMsg(msg: ServerMsg, playerId: number, playerName: string) {
         //check if message is from the right player - use gamestate here
         if (playerId != this.gameState.getCurrentPlayer()){
-            //TODO: SEND ERROR TO THE PLAYER WEBSOCKET
+            //send error to websocket
+            this.sendMsgToPlayer(playerId, this.currGame.getWrongPlayerErr(msg));
         }
 
         //pass msg to the game
-        this.currGame.handleAction(msg, playerId, playerName)
-
+        const actionRes = this.currGame.handleAction(msg, playerId, playerName)
+        if (actionRes){ //if there was an error, send that back
+            this.sendMsgToPlayer(playerId, actionRes);
+        }
     }
 
     //given a playerId (base 1), send a message to the socket
-    private sendToAPlayer(playerId: number, sendMsg: GameMsg){
+    private sendMsgToPlayer(playerId: number, sendMsg: GameMsg){
         //do we definitely know if this is a socket player at this point?
+        console.log(`sending message.....`)
         this.gameState.players[playerId-1].socket?.sendGameMsg(sendMsg);
     }
 

@@ -6,7 +6,7 @@ import { ConfettiEmitter } from "../ConfettiEmitter";
 import { FancyButton } from "@pixi/ui";
 import { Game } from "../GameAbstract";
 import { ActionType, CommandEnum, GameMsg, priorityEnum, ServerMsg } from "../../types/ActionTypes";
-import { MancalaActions, mancalaSocketTexts, pickResponseSchema } from "./MancalaActions";
+import { MancalaActions, mancalaSocketTexts, pickPitAction, pickResponseSchema } from "./MancalaActions";
 import { GameList } from "../../ui/GameList";
 
 export class MancalaGame extends Game {
@@ -27,6 +27,7 @@ export class MancalaGame extends Game {
     public onHomePressed?: () => void;
 
     //should be overriden with method in SocketGameInterface
+    public sendGameContext: (playerId: number, message: string, isSilent: boolean) => void;
     public sendActionList: (playerId: number, actionList: ActionType[]) => void;
     public sendActionForce: (playerId: number, stateVal: string, queryVal: string, actionList: string[], priorityVal: priorityEnum) => void;
     public sendActionResult: (playerId: number, actionId: string, successVal: boolean, messageVal?: string) => void
@@ -85,6 +86,7 @@ export class MancalaGame extends Game {
         });
 
         //temp functions to start init <- these functions need to be overriden!
+        this.sendGameContext = () => {throw new Error("Method not implemented.");}
         this.sendActionList = () => {throw new Error("Method not implemented.");}
         this.sendActionForce = () => {throw new Error("Method not implemented.");}
         this.sendActionResult = () => {throw new Error("Method not implemented.");}
@@ -112,7 +114,7 @@ export class MancalaGame extends Game {
 
     public startGame() {
         this.gameState.randomPlayerAssign();
-        this.board = new MancalaBoard(this.gameState);
+        this.board = new MancalaBoard(this.gameState, this.sendActionForce);
 
         this.board.onTurnChange = (player) => {
             this.updateTurnText(player);
@@ -121,6 +123,9 @@ export class MancalaGame extends Game {
         this.board.onGameEnd = (winner) => {
             this.endGame(winner);
         };
+
+        this.board.sendGameContext = this.sendGameContext;
+        this.board.sendActionResult = this.sendActionResult;
 
         this.topText = new Text({
             text: `Player ${this.gameState.getCurrentPlayer()}'s Turn`,
@@ -137,11 +142,14 @@ export class MancalaGame extends Game {
 
         this.drawGame();
 
-        //test overrides
-        // this.sendActionList([]);
-        // this.sendActionForce("", "", [], priorityEnum.low);
-        // this.sendActionResult("", false);
-        // this.unregisterAction([]);
+        for (let i = 1; i < 3; i++) {
+            if (this.gameState.getIsSocketPlayer(i)){
+                this.sendActionList(
+                    i,
+                    [pickPitAction]
+                )
+            } 
+        }
     }
 
 
@@ -164,6 +172,13 @@ export class MancalaGame extends Game {
         this.homeButton.enabled = true;
 
         this.gameState.updateWinner(winner)
+
+        for (let i = 1; i < 3; i++) {
+            if (this.gameState.getIsSocketPlayer(i)){
+                this.unregisterAction(1, [MancalaActions.pick_pit])
+            } 
+        }
+
     }
 
 
@@ -180,7 +195,7 @@ export class MancalaGame extends Game {
     //parse data sent by socketPlayer
     // if correct, run the action
     //if theres an issue, return an error
-    public handleAction(msg: ServerMsg, playerId: number, playerName: string): GameMsg {
+    public handleAction(msg: ServerMsg, playerId: number, playerName: string): GameMsg | null {
         //should be right player action here, check if it is an actual action, 
         //return a returnType <- also needs to update opponent with context if an update is made (in this function??)
         if (msg.data.name in MancalaActions){   //theres like only one but it sets precedent or whatever
@@ -201,7 +216,10 @@ export class MancalaGame extends Game {
             if (this.board.isPitEmpty(pit)){
                 return this.buildResultMsg(msg.data.id, false, mancalaSocketTexts.errorEmpty(pit))
             }
-            return this.executeAction(pit, msg, playerId, playerName);
+            //when the player needs to do another turn, both an action result success and action force needs to be sent
+            //i could just send a failed action to force another try but that seems mean
+            this.board.socketMoveSeeds(pit, msg, playerId)
+            return null;
         }
         else {
             //non-existant action / not a mancala action
@@ -209,11 +227,8 @@ export class MancalaGame extends Game {
         }
     }
 
-    //action has been completely validated by the time it gets here
-    private executeAction(pit: number, msg: ServerMsg, playerId: number, playerName: string): GameMsg {
-        //when the player needs to do another turn, both an action result success and action force needs to be sent
-        //i could just send a failed action to force another try but that seems mean
-        return this.board.socketMoveSeeds(pit, msg, playerId)
+    public getWrongPlayerErr(msg: ServerMsg): GameMsg {
+        return this.buildResultMsg(msg.data.id, false, mancalaSocketTexts.errorTurn());
     }
 
     private buildResultMsg(actionId: string, success: boolean, message: string): GameMsg {

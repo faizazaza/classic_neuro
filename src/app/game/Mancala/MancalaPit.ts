@@ -157,4 +157,8 @@ export class MancalaPit extends Container {
 
         engine().ticker.add(tickerFunc);
     }
+
+    public getIndexStoreRep() {
+        return `[${this.index}]: {${this.seedHeld}}`
+    }
 }

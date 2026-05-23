@@ -1,7 +1,8 @@
 import { Container, Graphics } from "pixi.js";
 import { MancalaPit } from "./MancalaPit";
 import { GameState } from "../../screens/main/GameState";
-import { GameMsg, ServerMsg } from "../../types/ActionTypes";
+import { priorityEnum, ServerMsg } from "../../types/ActionTypes";
+import { MancalaActions, mancalaSocketTexts } from "./MancalaActions";
 
 
 export class MancalaBoard extends Container {
@@ -14,6 +15,10 @@ export class MancalaBoard extends Container {
     public onTurnChange?: (player: number) => void;
     public onGameEnd?: (winner: number) => void;
 
+    public sendGameContext: (playerId: number, message: string, isSilent: boolean) => void;
+    private sendActionForce: (playerId: number, stateVal: string, queryVal: string, actionList: string[], priorityVal: priorityEnum) => void;
+    public sendActionResult: (playerId: number, actionId: string, successVal: boolean, messageVal?: string) => void
+
     //TODO: should make it scale on screen size
     private readonly boardWidth: number = 900;
     private readonly boardVerticalBuffer: number = 50;
@@ -23,7 +28,7 @@ export class MancalaBoard extends Container {
     private readonly pitSize = (this.boardWidth - (9 * this.boardHorizontalBuffer))/8;
     private readonly storeLength = this.boardLength - (2 * this.boardVerticalBuffer);
 
-    constructor(state: GameState){
+    constructor(state: GameState, sendActionForce: (playerId: number, stateVal: string, queryVal: string, actionList: string[], priorityVal: priorityEnum) => void){
         super();
         this.removeChildren();
         this.gameState = state;
@@ -75,7 +80,23 @@ export class MancalaBoard extends Container {
            
             const movePos = this.pitSize + this.boardHorizontalBuffer;
             cumulPitWidth += i < 6 ? movePos : -movePos;
-            
+                
+        }
+
+        this.sendActionForce = sendActionForce; //so i can send the initial action force
+        this.sendGameContext = () => {throw new Error("Method not implemented.");}
+        this.sendActionResult = () => {throw new Error("Method not implemented.");}
+
+        if (this.gameState.getCurrentIsSocketPlayer()){
+            const currPlayer = this.gameState.getCurrentPlayer();
+            const playerStore = (currPlayer * 7) - 1;
+            this.sendActionForce(
+                currPlayer, 
+                this.getBoardStateString(currPlayer), 
+                mancalaSocketTexts.turn(playerStore, this.board[playerStore].getSeedHeld()),
+                [MancalaActions.pick_pit],
+                priorityEnum.low
+            )
         }
     }
 
@@ -203,31 +224,116 @@ export class MancalaBoard extends Container {
     //SocketPlayer actions
 
     //given a index for a pit (validate), and the correct player is sending the action, call moveSeeds
-    //returns a true value if player can make another turn
-    public socketMoveSeeds(pit: number, msg: ServerMsg, player: number): GameMsg {
+    //sends socket messages to player(s) as required
+    public socketMoveSeeds(pit: number, msg: ServerMsg, player: number) {
         const playerGoAgain = this.moveSeeds(pit, this.gameState.getCurrentPlayer())
+        //send action result to player(s)
+        this.sendActionResult(
+            player, 
+            msg.data.id, 
+            true, 
+            mancalaSocketTexts.resultPlayer(pit, this.getBoardStateString(player))
+        )
+        const nextPlayer = player == 1 ? 2 : 1;
+        if (this.gameState.getIsSocketPlayer(nextPlayer)){
+            this.sendGameContext(
+                nextPlayer, 
+                mancalaSocketTexts.resultOpponent(pit, this.getBoardStateString(nextPlayer)), 
+                true
+            )
+        }
+
         if (!this.checkEnd()){
             if (!playerGoAgain){
                 this.nextTurn();
                 //send board status and send info about turn end
+                //send action force to next player - if socket player
+                const nextPlayer = this.gameState.getCurrentPlayer();
+                this.onTurnChange?.(nextPlayer);
 
-                this.onTurnChange?.(this.gameState.getCurrentPlayer());  //update this function to send action force if other playe is socket player
-                
+                if (this.gameState.getIsSocketPlayer(nextPlayer)){
+                    const playerStore = (nextPlayer * 7) - 1;
+                    this.sendActionForce(
+                        nextPlayer, 
+                        this.getBoardStateString(player), 
+                        mancalaSocketTexts.turn(playerStore, this.board[playerStore].getSeedHeld()),
+                        [MancalaActions.pick_pit],
+                        priorityEnum.low
+                    )
+                }
             }
             else {
                 this.refreshButtons()
                 //send board status and another action force (tell to go again)
-
+                const playerStore = (player * 7) - 1;
+                this.sendActionForce(
+                    player, 
+                    this.getBoardStateString(player), 
+                    mancalaSocketTexts.turn(playerStore, this.board[playerStore].getSeedHeld()),
+                    [MancalaActions.pick_pit],
+                    priorityEnum.low
+                )
             }
         }
         else {
-            this.onGameEnd?.(this.gameState.getWinnerPlayer());
-            //send end message and unregister actions
+            const winner = this.gameState.getWinnerPlayer();
+            this.onGameEnd?.(winner);
+            //MancalaGame should handle the socket messages
+            const nextPlayer = player == 1 ? 2 : 1;
+            this.sendGameContext(
+                1,
+                winner == player ? 
+                    mancalaSocketTexts.win(
+                        this.board[(player * 7) - 1].getSeedHeld(), 
+                        this.board[(nextPlayer * 7) - 1].getSeedHeld()
+                    ) : 
+                    mancalaSocketTexts.lose(
+                        this.board[(player * 7) - 1].getSeedHeld(), 
+                        this.board[(nextPlayer * 7) - 1].getSeedHeld()
+                    ),
+                false,
+            )
 
+            //check if other player is a socket player before sending messages
+            if (this.gameState.getIsSocketPlayer(nextPlayer)){
+
+            }
+
+            //handle unregister in MancalaGame
         }
     }
 
     public isPitEmpty(pitIndex: number){
         return this.board[pitIndex].getSeedHeld() == 0;
+    }
+
+    private getBoardStateString(playerId: number): string {
+        return `
+        Board representation:
+        - Pits 0-5 belong to ${playerId == 1 ? "You" : "Player 1"}.
+        - Store 6 belongs to ${playerId == 1 ? "You" : "Player 1"}.
+        - Pits 7-12 belong to ${playerId == 2 ? "You" : "Player 2"}.
+        - Store 13 belongs to ${playerId == 2 ? "You" : "Player 2"}.
+
+        Raw board array:
+        ${this.board.map((pit) => `${pit.getIndexStoreRep()}`).join(", ")}
+
+        ${playerId == 1 ? "Your" : "Player 1"} pits: ${this.getPlayerPitStateString(1)}
+        ${playerId == 1 ? "Your" : "Player 1"} store: ${this.board[6].getSeedHeld()}
+
+        ${playerId == 2 ? "Your" : "Player 2"} pits: ${this.getPlayerPitStateString(2)}
+        ${playerId == 2 ? "Your" : "Player 2"} store: ${this.board[13].getSeedHeld()}
+        `
+    }
+
+    //i dont want to squish this into one line
+    public getPlayerPitStateString(playerId: number): string {
+        const storeIndex = (playerId * 7) - 1;
+        const firstPitIndex = storeIndex - 6;
+
+        return this.board
+            .slice(firstPitIndex, storeIndex)
+            .map(pit => pit.getIndexStoreRep())
+            .join("");
     }
 }

@@ -78,20 +78,20 @@ export class GameState {
     }
 
     //out of bounds errors???????
-    public getPlayerName(index: number){
-        return this.players[index].playerName;
+    public getPlayerName(playerNum: number){
+        return this.players[playerNum-1].playerName;
     }
 
-    public getPlayerColour(index: number){
-        return this.players[index].playerColour;
+    public getPlayerColour(playerNum: number){
+        return this.players[playerNum-1].playerColour;
     }
 
-    public getPlayerWins(index: number){
-        return this.players[index].playerWins;
+    public getPlayerWins(playerNum: number){
+        return this.players[playerNum-1].playerWins;
     }
 
-    public getIsSocketPlayer(index: number){
-        return this.players[index].isSocketPlayer;
+    public getIsSocketPlayer(playerNum: number){
+        return this.players[playerNum-1].isSocketPlayer;
     }
 }
 
