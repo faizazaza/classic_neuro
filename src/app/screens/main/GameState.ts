@@ -2,6 +2,7 @@ import { ServerMsg } from "../../types/ActionTypes";
 import { GameList } from "../../ui/GameList";
 import { SocketPlayer } from "../../websocket/SocketPlayer";
 import { randomBool } from "../../../engine/utils/random";
+import { ColorSource } from "pixi.js";
 
 export class GameState {
     private currentGame: GameList | null = null;
@@ -12,7 +13,7 @@ export class GameState {
 
     public players: PlayerState[] = [];
 
-    public addPlayer(name: string, colour: string, isSocket: boolean, onSocketMsg: (msg: ServerMsg, playerId: number, playerName: string) => void = () => {}) {
+    public addPlayer(name: string, colour: ColorSource, isSocket: boolean, onSocketMsg: (msg: ServerMsg, playerId: number, playerName: string) => void = () => {}) {
         const playersLength = this.players.length;
         this.players[playersLength] = {
             playerName: name,
@@ -98,7 +99,7 @@ export class GameState {
 export type PlayerState = {
     playerName: string,
     playerIndex: number,
-    playerColour: string,
+    playerColour: ColorSource,
     playerWins: number,
     isSocketPlayer: boolean,
     socket?: SocketPlayer,

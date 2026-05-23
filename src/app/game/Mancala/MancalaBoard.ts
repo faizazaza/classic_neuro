@@ -15,7 +15,7 @@ export class MancalaBoard extends Container {
     public onTurnChange?: (player: number) => void;
     public onGameEnd?: (winner: number) => void;
 
-    public sendGameContext: (playerId: number, message: string, isSilent: boolean) => void;
+    private sendGameContext: (playerId: number, message: string, isSilent: boolean) => void;
     private sendActionForce: (playerId: number, stateVal: string, queryVal: string, actionList: string[], priorityVal: priorityEnum) => void;
     public sendActionResult: (playerId: number, actionId: string, successVal: boolean, messageVal?: string) => void
 
@@ -28,7 +28,11 @@ export class MancalaBoard extends Container {
     private readonly pitSize = (this.boardWidth - (9 * this.boardHorizontalBuffer))/8;
     private readonly storeLength = this.boardLength - (2 * this.boardVerticalBuffer);
 
-    constructor(state: GameState, sendActionForce: (playerId: number, stateVal: string, queryVal: string, actionList: string[], priorityVal: priorityEnum) => void){
+    constructor(
+        state: GameState, 
+        sendActionForce: (playerId: number, stateVal: string, queryVal: string, actionList: string[], priorityVal: priorityEnum) => void,
+        sendGameContext: (playerId: number, message: string, isSilent: boolean) => void
+    ){
         super();
         this.removeChildren();
         this.gameState = state;
@@ -83,16 +87,26 @@ export class MancalaBoard extends Container {
                 
         }
 
-        this.sendActionForce = sendActionForce; //so i can send the initial action force
-        this.sendGameContext = () => {throw new Error("Method not implemented.");}
+        this.sendActionForce = sendActionForce;
+        this.sendGameContext = sendGameContext;
         this.sendActionResult = () => {throw new Error("Method not implemented.");}
+
+        for (let i = 1; i < 3; i++) {
+            if (this.gameState.getIsSocketPlayer(i)){
+                this.sendGameContext(
+                    i,
+                    mancalaSocketTexts.start((i * 7) -1, this.getBoardStateString(i)),
+                    true //?? should i make this false?
+                )
+            } 
+        }
 
         if (this.gameState.getCurrentIsSocketPlayer()){
             const currPlayer = this.gameState.getCurrentPlayer();
             const playerStore = (currPlayer * 7) - 1;
             this.sendActionForce(
                 currPlayer, 
-                this.getBoardStateString(currPlayer), 
+                "", //uh is that fine
                 mancalaSocketTexts.turn(playerStore, this.board[playerStore].getSeedHeld()),
                 [MancalaActions.pick_pit],
                 priorityEnum.low
@@ -105,7 +119,7 @@ export class MancalaBoard extends Container {
         if (!this.checkEnd()){
             if (!playerGoAgain){
                 this.nextTurn();
-                this.onTurnChange?.(this.gameState.getCurrentPlayer());
+                
             }
             else {
                 this.refreshButtons()
@@ -198,6 +212,20 @@ export class MancalaBoard extends Container {
         this.gameState.updateTurn()
         //handle buttons
         this.refreshButtons();
+        const nextPlayer = this.gameState.getCurrentPlayer();
+        this.onTurnChange?.(nextPlayer);
+
+        //send action force to next player - if socket player
+        if (this.gameState.getIsSocketPlayer(nextPlayer)){
+            const playerStore = (nextPlayer * 7) - 1;
+            this.sendActionForce(
+                nextPlayer, 
+                this.getBoardStateString(nextPlayer), 
+                mancalaSocketTexts.turn(playerStore, this.board[playerStore].getSeedHeld()),
+                [MancalaActions.pick_pit],
+                priorityEnum.low
+            )
+        }
     }
 
     private refreshButtons(): void {
@@ -246,21 +274,6 @@ export class MancalaBoard extends Container {
         if (!this.checkEnd()){
             if (!playerGoAgain){
                 this.nextTurn();
-                //send board status and send info about turn end
-                //send action force to next player - if socket player
-                const nextPlayer = this.gameState.getCurrentPlayer();
-                this.onTurnChange?.(nextPlayer);
-
-                if (this.gameState.getIsSocketPlayer(nextPlayer)){
-                    const playerStore = (nextPlayer * 7) - 1;
-                    this.sendActionForce(
-                        nextPlayer, 
-                        this.getBoardStateString(player), 
-                        mancalaSocketTexts.turn(playerStore, this.board[playerStore].getSeedHeld()),
-                        [MancalaActions.pick_pit],
-                        priorityEnum.low
-                    )
-                }
             }
             else {
                 this.refreshButtons()
@@ -334,6 +347,6 @@ export class MancalaBoard extends Container {
         return this.board
             .slice(firstPitIndex, storeIndex)
             .map(pit => pit.getIndexStoreRep())
-            .join("");
+            .join(", ");
     }
 }

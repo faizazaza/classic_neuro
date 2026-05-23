@@ -53,7 +53,7 @@ export class MancalaPit extends Container {
 
     public addSeed(numUpdated: number, plusSeed = 1): void {
         this.seedHeld += plusSeed;
-        this.seedText.text = this.seedHeld
+        // this.seedText.text = this.seedHeld
         this.animateText(this.seedText, numUpdated)
     }
 
@@ -74,7 +74,7 @@ export class MancalaPit extends Container {
             this.pitWidth,
             this.pitLength,
             15)
-            .stroke({ width: 10, color: this.gameState.getPlayerColour(this.player-1) })
+            .stroke({ width: 10, color: this.gameState.getPlayerColour(this.player) })
             .fill({ color: 0x452519 })
 
         if (!this.store){
@@ -141,6 +141,7 @@ export class MancalaPit extends Container {
 
     private async animateText(text: Text, numUpdated: number) {
         await waitFor(MancalaPit.WAIT_DURATION * numUpdated);  //visual wait
+        text.text = this.seedHeld;
         let life = 60;
 
         const tickerFunc = () => {
@@ -159,6 +160,6 @@ export class MancalaPit extends Container {
     }
 
     public getIndexStoreRep() {
-        return `[${this.index}]: {${this.seedHeld}}`
+        return `[${this.index}]:{${this.seedHeld}}`
     }
 }

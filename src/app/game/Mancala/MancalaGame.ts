@@ -114,7 +114,18 @@ export class MancalaGame extends Game {
 
     public startGame() {
         this.gameState.randomPlayerAssign();
-        this.board = new MancalaBoard(this.gameState, this.sendActionForce);
+
+        //send action list for socket players first
+        for (let i = 1; i < 3; i++) {
+            if (this.gameState.getIsSocketPlayer(i)){
+                this.sendActionList(
+                    i,
+                    [pickPitAction]
+                )
+            } 
+        }
+
+        this.board = new MancalaBoard(this.gameState, this.sendActionForce, this.sendGameContext);
 
         this.board.onTurnChange = (player) => {
             this.updateTurnText(player);
@@ -124,7 +135,6 @@ export class MancalaGame extends Game {
             this.endGame(winner);
         };
 
-        this.board.sendGameContext = this.sendGameContext;
         this.board.sendActionResult = this.sendActionResult;
 
         this.topText = new Text({
@@ -142,14 +152,6 @@ export class MancalaGame extends Game {
 
         this.drawGame();
 
-        for (let i = 1; i < 3; i++) {
-            if (this.gameState.getIsSocketPlayer(i)){
-                this.sendActionList(
-                    i,
-                    [pickPitAction]
-                )
-            } 
-        }
     }
 
 

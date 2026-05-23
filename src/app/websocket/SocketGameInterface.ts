@@ -14,8 +14,8 @@ export class SocketGameInterface{
     constructor(state: GameState){
         this.gameState = state;
         //add one mouse player and one socket player
-        this.gameState.addPlayer("mouse", "0xAE2448", false);
-        this.gameState.addPlayer("socket", "0x72BAA9", true, this.handleSocketMsg);
+        this.gameState.addPlayer("mouse", 0xAE2448, false);
+        this.gameState.addPlayer("socket", 0x72BAA9, true, this.handleSocketMsg);
         
     }
 
@@ -28,8 +28,6 @@ export class SocketGameInterface{
         this.currGame.sendActionResult = this.sendActionResult;
         this.currGame.unregisterAction = this.unregisterAction;
 
-        this.currGame.startGame();
-
         //send startup messages to socket players
         //maybe a bit overkill for like 2 players
         for (const player of this.gameState.players){
@@ -38,9 +36,12 @@ export class SocketGameInterface{
                     command: CommandEnum.startup,
                     game: this.gameState.getGameName()
                 }
-                player.socket?.sendGameMsg(msg);
+                console.log(msg)
+                //player.socket?.sendGameMsg(msg);
             }
         }
+
+        this.currGame.startGame();
     }
 
     //TODO: needs to query socket players that need these messages and then send it over
@@ -63,7 +64,7 @@ export class SocketGameInterface{
                 silent: isSilent
             }
         }
-        this.sendMsgToPlayer(playerId, msg);
+        //this.gameState.players[playerId-1].socket?.sendGameMsg(msg);
     }
 
     public sendActionList(playerId: number, actionList: ActionType[]) {
@@ -75,7 +76,7 @@ export class SocketGameInterface{
                 actions: actionList
             }
         }
-        this.sendMsgToPlayer(playerId, msg);
+        //this.gameState.players[playerId-1].socket?.sendGameMsg(msg);
     }
 
     public sendActionForce(playerId: number, stateVal: string, queryVal: string, actionList: string[], priorityVal: priorityEnum) {
@@ -90,7 +91,7 @@ export class SocketGameInterface{
                 action_names: actionList
             }
         }
-        this.sendMsgToPlayer(playerId, msg);
+        //this.gameState.players[playerId-1].socket?.sendGameMsg(msg);
     }
 
     public sendActionResult(playerId: number, actionId: string, successVal: boolean, messageVal?: string) {
@@ -104,7 +105,7 @@ export class SocketGameInterface{
                 message: messageVal
             }
         }
-        this.sendMsgToPlayer(playerId, msg);
+        //this.gameState.players[playerId-1].socket?.sendGameMsg(msg);
     }
 
     public unregisterAction(playerId: number, actionList: string[]) {
@@ -116,7 +117,7 @@ export class SocketGameInterface{
                 action_names: actionList
             }
         }
-        this.sendMsgToPlayer(playerId, msg);
+        //this.gameState.players[playerId-1].socket?.sendGameMsg(msg);
     }
 
     //game-based types? maybe just let the game return the error
@@ -124,21 +125,14 @@ export class SocketGameInterface{
         //check if message is from the right player - use gamestate here
         if (playerId != this.gameState.getCurrentPlayer()){
             //send error to websocket
-            this.sendMsgToPlayer(playerId, this.currGame.getWrongPlayerErr(msg));
+            //this.gameState.players[playerId-1].socket?.sendGameMsg(this.currGame.getWrongPlayerErr(msg));
         }
 
         //pass msg to the game
         const actionRes = this.currGame.handleAction(msg, playerId, playerName)
         if (actionRes){ //if there was an error, send that back
-            this.sendMsgToPlayer(playerId, actionRes);
+            //this.gameState.players[playerId-1].socket?.sendGameMsg(actionRes);
         }
-    }
-
-    //given a playerId (base 1), send a message to the socket
-    private sendMsgToPlayer(playerId: number, sendMsg: GameMsg){
-        //do we definitely know if this is a socket player at this point?
-        console.log(`sending message.....`)
-        this.gameState.players[playerId-1].socket?.sendGameMsg(sendMsg);
     }
 
 }
