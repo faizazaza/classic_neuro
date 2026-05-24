@@ -14,9 +14,10 @@ export class SocketGameInterface{
 
     constructor(state: GameState){
         this.gameState = state;
+        console.log(this.gameState);
         //add one mouse player and one socket player
         this.gameState.addPlayer("mouse", "AE2448", false);
-        this.gameState.addPlayer("socket", "72BAA9", true, this.handleSocketMsg);
+        this.gameState.addPlayer("socket", "72BAA9", true, (msg: ServerMsg, playerId: number, playerName: string) => this.handleSocketMsg(msg, playerId, playerName));
         
     }
 
@@ -133,7 +134,7 @@ export class SocketGameInterface{
     }
 
     public sendActionList(playerId: number, actionList: ActionType[]) {
-        console.log(`test sendActionList ${actionList}`)
+        console.log(`test sendActionList ${actionList[0].schema?.toString()}`)
         const msg: GameMsg = {
             command: CommandEnum.register,
             game: this.gameState.getGameName(),
@@ -188,7 +189,8 @@ export class SocketGameInterface{
     //game-based types? maybe just let the game return the error
     public handleSocketMsg(msg: ServerMsg, playerId: number, playerName: string) {
 
-        //check if its a customisationa action
+        console.log(msg);
+        //check if its a customisation action
         if (msg.data.name in CustomisationActions){
             switch (msg.data.name) {
                 case CustomisationActions.change_colour:
@@ -198,12 +200,14 @@ export class SocketGameInterface{
                 default:
                     break;
             }
+            return;
         }
         else {
             //check if message is from the right player - use gamestate here
             if (playerId != this.gameState.getCurrentPlayer()){
                 //send error to websocket
                 this.gameState.players[playerId-1].socket?.sendGameMsg(this.currGame.getWrongPlayerErr(msg));
+                return;
             }
 
             //pass msg to the game

@@ -36,10 +36,7 @@ type CommandDataMap = {
 export type ActionType = {
     name: string,
     description: string,
-    schema?: {
-        type: "object",
-        [key: string]: any
-    }
+    schema?: unknown    //ew
 }
 
 export type ContextDataType = {

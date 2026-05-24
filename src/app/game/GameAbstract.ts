@@ -16,9 +16,6 @@ export abstract class Game extends Container {
     public abstract startGame(): void;
     public abstract endGame(winner: number): void;
 
-    public abstract collectGameStatus(): string;
-    public abstract collectActionList(): ActionType[];
-
     //i could just have one method,, i dont really like it,, but i guess its a nice reminder of what actions needs to be made for each game?
     public abstract sendGameContext(playerId: number, message: string, isSilent: boolean): void
     public abstract sendActionList(playerId: number, actionList: ActionType[]):  void;

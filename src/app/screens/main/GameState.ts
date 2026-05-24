@@ -20,7 +20,7 @@ export class GameState {
             playerColour: colour,
             playerWins: 0,
             isSocketPlayer: isSocket,
-            socket: isSocket ? new SocketPlayer("...", name, playersLength + 1, onSocketMsg) : undefined
+            socket: isSocket ? new SocketPlayer("ws://localhost:8000", name, playersLength + 1, onSocketMsg) : undefined
         }
     }
 

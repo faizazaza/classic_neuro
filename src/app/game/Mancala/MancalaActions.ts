@@ -47,5 +47,5 @@ export const pickResponseSchema = z.object({
 export const pickPitAction: ActionType = {
     name: MancalaActions.pick_pit,
     description: mancalaSocketTexts.pick_pit(),
-    schema: pickResponseSchema
+    schema: z.toJSONSchema(pickResponseSchema)
 }

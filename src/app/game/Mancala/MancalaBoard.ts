@@ -216,6 +216,7 @@ export class MancalaBoard extends Container {
         this.onTurnChange?.(nextPlayer);
 
         //send action force to next player - if socket player
+        //TODO: i didn' see this working in tests?
         if (this.gameState.getIsSocketPlayer(nextPlayer)){
             const playerStore = (nextPlayer * 7) - 1;
             this.sendActionForce(

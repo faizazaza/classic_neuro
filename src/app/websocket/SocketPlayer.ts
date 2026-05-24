@@ -28,10 +28,6 @@ export class SocketPlayer {
 
         socket.onopen = () => {
             console.log(`Player ${this.playerId} connected to Websocket. Name: ${this.playerName}`);
-            const msg = {
-                //init msg here
-            }
-            socket.send(JSON.stringify(msg))
         };
 
         socket.onerror = (event: Event) => {

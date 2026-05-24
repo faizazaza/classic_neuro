@@ -183,17 +183,6 @@ export class MancalaGame extends Game {
 
     }
 
-
-    public collectGameStatus(): string {
-        //send a string of board status, how the game works, which pits belong to the player, what player number they are
-        throw new Error("Method not implemented.");
-    }
-
-    public collectActionList(): ActionType[] {
-        //1 action with payload of pit index/ 6 actions for each pit and then unregister when empty?
-        throw new Error("Method not implemented.");
-    }
-
     //parse data sent by socketPlayer
     // if correct, run the action
     //if theres an issue, return an error
@@ -203,7 +192,8 @@ export class MancalaGame extends Game {
         if (msg.data.name in MancalaActions){   //theres like only one but it sets precedent or whatever
             //should have a switch case here, but theres only one action in this game
             //check if inavlid schema, oob/not a number, or if pit is empty
-            const parseResult = pickResponseSchema.safeParse(msg.data.data);
+            const parseResult = pickResponseSchema.safeParse(JSON.parse(msg.data.data ?? ""));
+                        
             if (!parseResult.success){
                 return this.buildResultMsg(msg.data.id, false, mancalaSocketTexts.errorInvalidSchema(msg.data.name))
             }
