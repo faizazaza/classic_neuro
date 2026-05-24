@@ -1,3 +1,4 @@
+import { colourResponseSchema, CustomisationActions, customisationSocketTexts, nameResponseSchema } from "../game/CustomisationActions";
 import { Game } from "../game/GameAbstract";
 import { GameState } from "../screens/main/GameState";
 import { ActionType, CommandEnum, GameMsg, priorityEnum, ServerMsg } from "../types/ActionTypes";
@@ -14,8 +15,8 @@ export class SocketGameInterface{
     constructor(state: GameState){
         this.gameState = state;
         //add one mouse player and one socket player
-        this.gameState.addPlayer("mouse", 0xAE2448, false);
-        this.gameState.addPlayer("socket", 0x72BAA9, true, this.handleSocketMsg);
+        this.gameState.addPlayer("mouse", "AE2448", false);
+        this.gameState.addPlayer("socket", "72BAA9", true, this.handleSocketMsg);
         
     }
 
@@ -37,18 +38,82 @@ export class SocketGameInterface{
                     game: this.gameState.getGameName()
                 }
                 console.log(msg)
-                //player.socket?.sendGameMsg(msg);
+                //no reason for this to be undefined really
+                player.socket?.sendGameMsg(msg);
             }
         }
 
         this.currGame.startGame();
     }
 
-    //TODO: needs to query socket players that need these messages and then send it over
-
     public endGame() {
         //destroy game and unregister all game related actions
         this.currGame.destroy();
+    }
+
+    public updatePlayerName(playerId: number, msg: ServerMsg){
+        const parseResult = nameResponseSchema.safeParse(msg.data.data);
+        if (!parseResult.success){
+            this.sendActionResult(
+                playerId, 
+                msg.data.id, 
+                false, 
+                customisationSocketTexts.errorInvalidSchema(msg.data.name)
+            )
+            return;
+        }
+
+        this.sendActionResult(
+            playerId, 
+            msg.data.id, 
+            true
+        )
+        this.gameState.setPlayerName(playerId, parseResult.data.name)
+
+    }
+
+    //customisation functions
+    public updatePlayerColour(playerId: number, msg: ServerMsg){
+        //check if an actual hex value was returned, if it then send back an error
+        const parseResult = colourResponseSchema.safeParse(msg.data.data);
+        if (!parseResult.success){
+            this.sendActionResult(
+                playerId, 
+                msg.data.id, 
+                false, 
+                customisationSocketTexts.errorInvalidSchema(msg.data.name)
+            )
+            return;
+        }
+        try {
+            const res = parseInt(parseResult.data.colour, 16);
+            if (isNaN(res) || res > 16777215){
+                this.sendActionResult(
+                    playerId, 
+                    msg.data.id, 
+                    false, 
+                    customisationSocketTexts.errNotHex()
+                )
+                return;
+            }
+
+            this.sendActionResult(
+                playerId, 
+                msg.data.id, 
+                true
+            )
+            //finally apply the colour to player
+            this.gameState.setPlayerColour(playerId, parseResult.data.colour);
+
+        } catch (error) {
+            this.sendActionResult(
+                playerId, 
+                msg.data.id, 
+                false, 
+                customisationSocketTexts.errNotHex()
+            )
+            return;
+        }
     }
 
     //methods to be called from the games
@@ -64,7 +129,7 @@ export class SocketGameInterface{
                 silent: isSilent
             }
         }
-        //this.gameState.players[playerId-1].socket?.sendGameMsg(msg);
+        this.gameState.players[playerId-1].socket?.sendGameMsg(msg);
     }
 
     public sendActionList(playerId: number, actionList: ActionType[]) {
@@ -76,7 +141,7 @@ export class SocketGameInterface{
                 actions: actionList
             }
         }
-        //this.gameState.players[playerId-1].socket?.sendGameMsg(msg);
+        this.gameState.players[playerId-1].socket?.sendGameMsg(msg);
     }
 
     public sendActionForce(playerId: number, stateVal: string, queryVal: string, actionList: string[], priorityVal: priorityEnum) {
@@ -91,7 +156,7 @@ export class SocketGameInterface{
                 action_names: actionList
             }
         }
-        //this.gameState.players[playerId-1].socket?.sendGameMsg(msg);
+        this.gameState.players[playerId-1].socket?.sendGameMsg(msg);
     }
 
     public sendActionResult(playerId: number, actionId: string, successVal: boolean, messageVal?: string) {
@@ -105,7 +170,7 @@ export class SocketGameInterface{
                 message: messageVal
             }
         }
-        //this.gameState.players[playerId-1].socket?.sendGameMsg(msg);
+        this.gameState.players[playerId-1].socket?.sendGameMsg(msg);
     }
 
     public unregisterAction(playerId: number, actionList: string[]) {
@@ -117,21 +182,35 @@ export class SocketGameInterface{
                 action_names: actionList
             }
         }
-        //this.gameState.players[playerId-1].socket?.sendGameMsg(msg);
+        this.gameState.players[playerId-1].socket?.sendGameMsg(msg);
     }
 
     //game-based types? maybe just let the game return the error
     public handleSocketMsg(msg: ServerMsg, playerId: number, playerName: string) {
-        //check if message is from the right player - use gamestate here
-        if (playerId != this.gameState.getCurrentPlayer()){
-            //send error to websocket
-            //this.gameState.players[playerId-1].socket?.sendGameMsg(this.currGame.getWrongPlayerErr(msg));
-        }
 
-        //pass msg to the game
-        const actionRes = this.currGame.handleAction(msg, playerId, playerName)
-        if (actionRes){ //if there was an error, send that back
-            //this.gameState.players[playerId-1].socket?.sendGameMsg(actionRes);
+        //check if its a customisationa action
+        if (msg.data.name in CustomisationActions){
+            switch (msg.data.name) {
+                case CustomisationActions.change_colour:
+                    this.updatePlayerColour(playerId, msg);
+                    break;
+            
+                default:
+                    break;
+            }
+        }
+        else {
+            //check if message is from the right player - use gamestate here
+            if (playerId != this.gameState.getCurrentPlayer()){
+                //send error to websocket
+                this.gameState.players[playerId-1].socket?.sendGameMsg(this.currGame.getWrongPlayerErr(msg));
+            }
+
+            //pass msg to the game
+            const actionRes = this.currGame.handleAction(msg, playerId, playerName)
+            if (actionRes){ //if there was an error, send that back
+                this.gameState.players[playerId-1].socket?.sendGameMsg(actionRes);
+            }
         }
     }
 

@@ -11,7 +11,7 @@ export const mancalaSocketTexts = {
             Your pits are ${storeNum-6} to ${storeNum-1} inclusive.
             Your store is ${storeNum}.
             Here is the current state of the board: ${boardState}`,
-    pickPit: () => `Select a pit to move all seeds from it. The seeds will be placed one at a time into each following pit around the board.`,
+    pick_pit: () => `Select a pit to move all seeds from it. The seeds will be placed one at a time into each following pit around the board.`,
     turn: (storeNum: number, storedSeeds: number) => 
         `It is your turn, use the pick_pit action to move the seeds from any of the pits ${storeNum-6} to ${storeNum-1} inclusive. 
             Your store is ${storeNum} and holds ${storedSeeds} 
@@ -46,6 +46,6 @@ export const pickResponseSchema = z.object({
 
 export const pickPitAction: ActionType = {
     name: MancalaActions.pick_pit,
-    description: mancalaSocketTexts.pickPit(),
+    description: mancalaSocketTexts.pick_pit(),
     schema: pickResponseSchema
 }

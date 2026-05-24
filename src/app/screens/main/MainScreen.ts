@@ -156,7 +156,7 @@ export class MainScreen extends Container {
   setGame = (selectedGame: GameList) => {
     //TODO switch case here
     //also make an abstract game class MancalaGame can extend from
-    this.gameState.currentGame = selectedGame;
+    this.gameState.newGame(selectedGame);
     const game = new MancalaGame(this.gameState, screen.width, screen.height);
     game.onHomePressed = () => {this.showGameArray()}
     this.reset();
