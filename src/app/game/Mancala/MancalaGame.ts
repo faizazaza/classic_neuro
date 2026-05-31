@@ -16,7 +16,7 @@ export class MancalaGame extends Game {
     //handle turns and game loop
     private board!: MancalaBoard;
     private topText!: Text;
-    private gameState!: GameState;
+    private gameState: GameState;
     private confetti: ConfettiEmitter;
     private restartButton: FancyButton;
     private homeButton: FancyButton;

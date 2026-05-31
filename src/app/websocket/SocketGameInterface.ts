@@ -1,5 +1,6 @@
 
 import { Game } from "../game/GameAbstract";
+import { GameMenu } from "../game/Menu/GameMenu";
 import { colourResponseSchema, InMenuActions, menuActionSocketTexts, nameResponseSchema } from "../game/Menu/MenuActions";
 import { GameState } from "../screens/main/GameState";
 import { ActionType, CommandEnum, GameMsg, priorityEnum, ServerMsg } from "../types/ActionTypes";
@@ -10,12 +11,13 @@ import { ActionType, CommandEnum, GameMsg, priorityEnum, ServerMsg } from "../ty
 
 export class SocketGameInterface{
 
-    public gameState: GameState;    
+    public gameState: GameState;  
+    private gameMenu: GameMenu;  
     private currGame!: Game;
 
-    constructor(state: GameState){
+    constructor(state: GameState, gameMenu: GameMenu){
         this.gameState = state;
-        console.log(this.gameState);
+        this.gameMenu = gameMenu;
         //add one mouse player and one socket player
         this.gameState.addPlayer("mouse", "AE2448", false);
         this.gameState.addPlayer("socket", "72BAA9", true, (msg: ServerMsg, playerId: number, playerName: string) => this.handleSocketMsg(msg, playerId, playerName));
@@ -53,70 +55,6 @@ export class SocketGameInterface{
         this.currGame.destroy();
     }
 
-    public updatePlayerName(playerId: number, msg: ServerMsg){
-        const parseResult = nameResponseSchema.safeParse(msg.data.data);
-        if (!parseResult.success){
-            this.sendActionResult(
-                playerId, 
-                msg.data.id, 
-                false, 
-                menuActionSocketTexts.errorInvalidSchema(msg.data.name)
-            )
-            return;
-        }
-
-        this.sendActionResult(
-            playerId, 
-            msg.data.id, 
-            true
-        )
-        this.gameState.setPlayerName(playerId, parseResult.data.name)
-
-    }
-
-    //customisation functions
-    public updatePlayerColour(playerId: number, msg: ServerMsg){
-        //check if an actual hex value was returned, if it then send back an error
-        const parseResult = colourResponseSchema.safeParse(msg.data.data);
-        if (!parseResult.success){
-            this.sendActionResult(
-                playerId, 
-                msg.data.id, 
-                false, 
-                menuActionSocketTexts.errorInvalidSchema(msg.data.name)
-            )
-            return;
-        }
-        try {
-            const res = parseInt(parseResult.data.colour, 16);
-            if (isNaN(res) || res > 16777215){
-                this.sendActionResult(
-                    playerId, 
-                    msg.data.id, 
-                    false, 
-                    menuActionSocketTexts.errNotHex()
-                )
-                return;
-            }
-
-            this.sendActionResult(
-                playerId, 
-                msg.data.id, 
-                true
-            )
-            //finally apply the colour to player
-            this.gameState.setPlayerColour(playerId, parseResult.data.colour);
-
-        } catch (error) {
-            this.sendActionResult(
-                playerId, 
-                msg.data.id, 
-                false, 
-                menuActionSocketTexts.errNotHex()
-            )
-            return;
-        }
-    }
 
     //methods to be called from the games
 
@@ -187,15 +125,24 @@ export class SocketGameInterface{
         this.gameState.players[playerId-1].socket?.sendGameMsg(msg);
     }
 
+
+    //first check if a game is active!! if its not then we need to use the menu
+
+
+
     //game-based types? maybe just let the game return the error
     public handleSocketMsg(msg: ServerMsg, playerId: number, playerName: string) {
+
+        if (!this.gameState.isGameActive()){
+            this.gameState.players[playerId-1].socket?.sendGameMsg(this.gameMenu.handleAction(msg, playerId, playerName))
+        }
 
         console.log(msg);
         //check if its a customisation action
         if (msg.data.name in InMenuActions){
             switch (msg.data.name) {
                 case InMenuActions.change_colour:
-                    this.updatePlayerColour(playerId, msg);
+                    
                     break;
             
                 default:

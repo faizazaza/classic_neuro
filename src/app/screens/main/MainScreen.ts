@@ -9,10 +9,10 @@ import { PausePopup } from "../../popups/PausePopup";
 import { SettingsPopup } from "../../popups/SettingsPopup";
 
 import { MancalaGame } from "../../game/Mancala/MancalaGame";
-import { GameArray } from "../../game/Menu/GameArray";
 import { GameList } from "../../game/GameList";
 import { GameState } from "./GameState";
 import { SocketGameInterface } from "../../websocket/SocketGameInterface";
+import { GameMenu } from "../../game/Menu/GameMenu";
 
 /** The screen that holds the app */
 export class MainScreen extends Container {
@@ -21,11 +21,11 @@ export class MainScreen extends Container {
 
   private gameState: GameState;
   private gameInterface: SocketGameInterface;
+  private gameMenu: GameMenu;
 
   public mainContainer: Container;
   private pauseButton: FancyButton;
   private settingsButton: FancyButton;
-  //private bouncer: Bouncer;
 
 
   private paused = false;
@@ -34,7 +34,8 @@ export class MainScreen extends Container {
     super();
 
     this.gameState = new GameState
-    this.gameInterface = new SocketGameInterface(this.gameState)
+    this.gameMenu = new GameMenu(this.gameState, this.setGame)
+    this.gameInterface = new SocketGameInterface(this.gameState, this.gameMenu)
 
     this.mainContainer = new Container();
     this.addChild(this.mainContainer);
@@ -73,12 +74,9 @@ export class MainScreen extends Container {
     );
     this.addChild(this.settingsButton);
 
-    
-    this.gameArray.onGameSelect = (game) => {
-      this.setGame(game);
-    }
-    this.mainContainer.addChild(this.gameArray)
+    this.mainContainer.addChild(this.gameMenu)
   }
+
 
   /** Prepare the screen just before showing */
   public prepare() {}

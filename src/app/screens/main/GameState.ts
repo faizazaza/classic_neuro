@@ -31,12 +31,14 @@ export class GameState {
         this.winnerPlayer = -1;
     }
 
-    public gameEnd(){
+    public gameEnd(){   //call this when leaving a game!
         this.currentGame = null;
         this.gameActive = false;
     }
 
     public getGameName(){return this.currentGame?.toString() ?? "no game found"}
+
+    public isGameActive(){return this.gameActive}
 
     public updateTurn(){
         this.currentPlayer = this.currentPlayer == 1 ? 2 : 1
