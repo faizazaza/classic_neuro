@@ -1,6 +1,6 @@
 import { FancyButton } from "@pixi/ui";
 import { Container, Graphics, Text } from "pixi.js";
-import { GameList } from "../../ui/GameList";
+import { GameList } from "../GameList";
 
 export class GameArray extends Container {
     private readonly iconSideLength = 200;
@@ -11,10 +11,13 @@ export class GameArray extends Container {
 
     private gameArray: Container[] = [];
 
-    public onGameSelect?: (game: GameList) => void;
+    public onGameSelect: (game: GameList) => void;
 
-    constructor(){
+    constructor(
+        onGameSelect: (game: GameList) => void
+    ){
         super()
+        this.onGameSelect = onGameSelect;
         this.iconBuffer = (this.containerSideLength - (this.rowNum * this.iconSideLength)) / (this.rowNum + 1)
         
         let counter = 0;
@@ -52,7 +55,7 @@ export class GameArray extends Container {
             // this.restartButton.y = 300;
     
             gameButton.onPress.connect(() => {
-                this.onGameSelect?.(value)
+                this.onGameSelect(value)
             });
 
             iconContainer.addChild(gameButton);

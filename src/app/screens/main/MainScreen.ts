@@ -9,8 +9,8 @@ import { PausePopup } from "../../popups/PausePopup";
 import { SettingsPopup } from "../../popups/SettingsPopup";
 
 import { MancalaGame } from "../../game/Mancala/MancalaGame";
-import { GameArray } from "./GameArray";
-import { GameList } from "../../ui/GameList";
+import { GameArray } from "../../game/Menu/GameArray";
+import { GameList } from "../../game/GameList";
 import { GameState } from "./GameState";
 import { SocketGameInterface } from "../../websocket/SocketGameInterface";
 
@@ -26,7 +26,7 @@ export class MainScreen extends Container {
   private pauseButton: FancyButton;
   private settingsButton: FancyButton;
   //private bouncer: Bouncer;
-  private gameArray: GameArray;
+
 
   private paused = false;
 
@@ -73,7 +73,7 @@ export class MainScreen extends Container {
     );
     this.addChild(this.settingsButton);
 
-    this.gameArray = new GameArray();
+    
     this.gameArray.onGameSelect = (game) => {
       this.setGame(game);
     }

@@ -7,7 +7,7 @@ import { FancyButton } from "@pixi/ui";
 import { Game } from "../GameAbstract";
 import { ActionType, CommandEnum, GameMsg, priorityEnum, ServerMsg } from "../../types/ActionTypes";
 import { MancalaActions, mancalaSocketTexts, pickPitAction, pickResponseSchema } from "./MancalaActions";
-import { GameList } from "../../ui/GameList";
+import { GameList } from "../GameList";
 
 export class MancalaGame extends Game {
 

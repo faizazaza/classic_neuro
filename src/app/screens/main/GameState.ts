@@ -1,5 +1,5 @@
 import { ServerMsg } from "../../types/ActionTypes";
-import { GameList } from "../../ui/GameList";
+import { GameList } from "../../game/GameList";
 import { SocketPlayer } from "../../websocket/SocketPlayer";
 import { randomBool } from "../../../engine/utils/random";
 

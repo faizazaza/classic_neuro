@@ -1,5 +1,6 @@
-import { colourResponseSchema, CustomisationActions, customisationSocketTexts, nameResponseSchema } from "../game/CustomisationActions";
+
 import { Game } from "../game/GameAbstract";
+import { colourResponseSchema, InMenuActions, menuActionSocketTexts, nameResponseSchema } from "../game/Menu/MenuActions";
 import { GameState } from "../screens/main/GameState";
 import { ActionType, CommandEnum, GameMsg, priorityEnum, ServerMsg } from "../types/ActionTypes";
 
@@ -59,7 +60,7 @@ export class SocketGameInterface{
                 playerId, 
                 msg.data.id, 
                 false, 
-                customisationSocketTexts.errorInvalidSchema(msg.data.name)
+                menuActionSocketTexts.errorInvalidSchema(msg.data.name)
             )
             return;
         }
@@ -82,7 +83,7 @@ export class SocketGameInterface{
                 playerId, 
                 msg.data.id, 
                 false, 
-                customisationSocketTexts.errorInvalidSchema(msg.data.name)
+                menuActionSocketTexts.errorInvalidSchema(msg.data.name)
             )
             return;
         }
@@ -93,7 +94,7 @@ export class SocketGameInterface{
                     playerId, 
                     msg.data.id, 
                     false, 
-                    customisationSocketTexts.errNotHex()
+                    menuActionSocketTexts.errNotHex()
                 )
                 return;
             }
@@ -111,7 +112,7 @@ export class SocketGameInterface{
                 playerId, 
                 msg.data.id, 
                 false, 
-                customisationSocketTexts.errNotHex()
+                menuActionSocketTexts.errNotHex()
             )
             return;
         }
@@ -191,9 +192,9 @@ export class SocketGameInterface{
 
         console.log(msg);
         //check if its a customisation action
-        if (msg.data.name in CustomisationActions){
+        if (msg.data.name in InMenuActions){
             switch (msg.data.name) {
-                case CustomisationActions.change_colour:
+                case InMenuActions.change_colour:
                     this.updatePlayerColour(playerId, msg);
                     break;
             
