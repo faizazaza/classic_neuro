@@ -2,7 +2,7 @@ import { Container } from "pixi.js";
 import { GameList } from "../GameList";
 import { GameArray } from "./GameArray";
 import { GameState } from "../../screens/main/GameState";
-import { colourResponseSchema, InMenuActions, menuActionSocketTexts, nameResponseSchema } from "./MenuActions";
+import { changeColourAction, changeNameAction, chooseGameAction, colourResponseSchema, goToMenuAction, InMenuActions, menuActionSocketTexts, nameResponseSchema, retryGameAction } from "./MenuActions";
 import { CommandEnum, GameMsg, ServerMsg } from "../../types/ActionTypes";
 
 export class GameMenu extends Container {
@@ -29,12 +29,18 @@ export class GameMenu extends Container {
         this.addChild(this.gameArray);
     }
 
-    //to be called by the gameState i think?? when a game is chosen and exited
-    public registerActions(){}
+    //to be called by the socketGameInterface when a game is started and ended and exited
+    public getInMenuActionList(){
+        return [chooseGameAction, changeNameAction, changeColourAction];
+    }
+
+    public getOutMenuActionList(){
+        return [goToMenuAction, retryGameAction];
+    }
 
     public unregisterActions(){}
 
-    private handleAction(msg: ServerMsg, playerId: number, playerName: string): GameMsg{
+    public handleAction(msg: ServerMsg, playerId: number, playerName: string): GameMsg{
         if (msg.data.name in InMenuActions){    //not a valid action handle?? is that even possible?
             switch (msg.data.name) {
                 case InMenuActions.change_colour:
@@ -46,6 +52,11 @@ export class GameMenu extends Container {
                     break;
             }
         }
+        return this.buildResultMsg(
+            msg.data.id,
+            false,
+            
+        )
     }
 
     //customisation functions
@@ -55,7 +66,7 @@ export class GameMenu extends Container {
             return this.buildResultMsg(
                 msg.data.id, 
                 false, 
-                menuActionSocketTexts.errorInvalidSchema(msg.data.name)
+                menuActionSocketTexts.errInvalidSchema(msg.data.name)
             )
         }
 
@@ -75,7 +86,7 @@ export class GameMenu extends Container {
             return this.buildResultMsg(
                 msg.data.id, 
                 false, 
-                menuActionSocketTexts.errorInvalidSchema(msg.data.name)
+                menuActionSocketTexts.errInvalidSchema(msg.data.name)
             )
         }
         try {

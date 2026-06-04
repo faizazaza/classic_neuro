@@ -22,6 +22,7 @@ export abstract class Game extends Container {
     public abstract sendActionForce(playerId: number, stateVal: string, queryVal: string, actionList: string[], priorityVal: priorityEnum): void;
     public abstract sendActionResult(playerId: number, actionId: string, successVal: boolean, messageVal?: string): void;
     public abstract unregisterAction(playerId: number, actionList: string[]): void;
+    public abstract handleMenuActions(inMenu: boolean, register: boolean): void;
 
     public abstract handleAction(msg: ServerMsg, playerId: number, playerName: string): GameMsg | null;
 

@@ -9,6 +9,8 @@ import { ActionType, CommandEnum, GameMsg, priorityEnum, ServerMsg } from "../ty
 //socket players call commands from here
 //is passed the game when it is init
 
+//should really be renamed since its not specific to socket players anymore
+
 export class SocketGameInterface{
 
     public gameState: GameState;  
@@ -25,6 +27,11 @@ export class SocketGameInterface{
     }
 
     public startGame(newGame: Game) {
+
+        //unregister all MenuActions
+        this.handleMenuActions(true, false);
+        this.handleMenuActions(false, false);
+
         this.currGame = newGame;
         //assign override functions
         this.currGame.sendGameContext = this.sendGameContext;
@@ -32,6 +39,7 @@ export class SocketGameInterface{
         this.currGame.sendActionForce = this.sendActionForce;
         this.currGame.sendActionResult = this.sendActionResult;
         this.currGame.unregisterAction = this.unregisterAction;
+        this.currGame.handleMenuActions = this.handleMenuActions;
 
         //send startup messages to socket players
         //maybe a bit overkill for like 2 players
@@ -50,9 +58,33 @@ export class SocketGameInterface{
         this.currGame.startGame();
     }
 
-    public endGame() {
+
+    private handleMenuActions(inMenu: boolean, register: boolean){
+        const menuActions = inMenu ? this.gameMenu.getInMenuActionList() : this.gameMenu.getOutMenuActionList()
+        console.log(menuActions)
+
+        for (const player of this.gameState.players){
+            if (player.isSocketPlayer){
+                if (register){
+                    this.sendActionList(player.playerIndex, menuActions)
+                }
+                else {
+                    this.unregisterAction(player.playerIndex, menuActions.map((a) => a.name))
+                }
+            }
+        }
+    }
+
+
+
+    public exitGame() {
         //destroy game and unregister all game related actions
         this.currGame.destroy();
+        
+        //unregister out-menu actions
+        this.handleMenuActions(false, false);
+        //register in-menu action
+        this.handleMenuActions(true, true);
     }
 
 

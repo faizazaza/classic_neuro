@@ -163,8 +163,8 @@ export class MainScreen extends Container {
   }
 
   showGameArray = () => {
-    this.gameInterface.endGame();
+    this.gameInterface.exitGame();
     this.reset();
-    this.mainContainer.addChild(this.gameArray);
+    this.mainContainer.addChild(this.gameMenu);
   }
 }

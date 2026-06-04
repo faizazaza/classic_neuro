@@ -9,6 +9,8 @@ import { ActionType, CommandEnum, GameMsg, priorityEnum, ServerMsg } from "../..
 import { MancalaActions, mancalaSocketTexts, pickPitAction, pickResponseSchema } from "./MancalaActions";
 import { GameList } from "../GameList";
 
+//TODO: make the retry and home button menu its own component
+
 export class MancalaGame extends Game {
 
     /** Assets bundles required by this screen */
@@ -32,6 +34,7 @@ export class MancalaGame extends Game {
     public sendActionForce: (playerId: number, stateVal: string, queryVal: string, actionList: string[], priorityVal: priorityEnum) => void;
     public sendActionResult: (playerId: number, actionId: string, successVal: boolean, messageVal?: string) => void
     public unregisterAction: (playerId: number, actionList: string[]) => void
+    public handleMenuActions: (inMenu: boolean, register: boolean) => void;
 
     constructor(state: GameState, screenWidth: number, screenHeight: number){
         super();
@@ -60,6 +63,8 @@ export class MancalaGame extends Game {
 
         this.restartButton.onPress.connect(() => {
             this.removeChildren();
+            //unregister out-menu actions that were previously enabled
+            this.handleMenuActions(false, false);
             this.startGame();
             this.drawGame();
         });
@@ -91,6 +96,7 @@ export class MancalaGame extends Game {
         this.sendActionForce = () => {throw new Error("Method not implemented.");}
         this.sendActionResult = () => {throw new Error("Method not implemented.");}
         this.unregisterAction = () => {throw new Error("Method not implemented.");}
+        this.handleMenuActions = () => {throw new Error("Method not implemented.");}
 
     }
 
@@ -113,6 +119,7 @@ export class MancalaGame extends Game {
     }
 
     public startGame() {
+
         this.gameState.randomPlayerAssign();
 
         //send action list for socket players first
@@ -161,7 +168,7 @@ export class MancalaGame extends Game {
     }
 
     endGame = (winner: number) => {
-        this.topText.style.fill = this.gameState.getPlayerColour(winner-1);
+        this.topText.style.fill = this.gameState.getPlayerColour(winner);
         this.topText.text = `Winner is Player ${winner}!`;
         for (let i = 0; i <= 5; i++) {
             const xVal = (-this.screenWidth/2) + ((this.screenWidth) / 5 * i)
@@ -173,11 +180,14 @@ export class MancalaGame extends Game {
         this.homeButton.visible = true;
         this.homeButton.enabled = true;
 
+        //register out-menu actions
+        this.handleMenuActions(false, true);
+
         this.gameState.updateWinner(winner)
 
         for (let i = 1; i < 3; i++) {
             if (this.gameState.getIsSocketPlayer(i)){
-                this.unregisterAction(1, [MancalaActions.pick_pit])
+                this.unregisterAction(i, [MancalaActions.pick_pit])
             } 
         }
 

@@ -19,8 +19,10 @@ export const menuActionSocketTexts = {
             An example input would be "AE2448"`,
     errNotHex: () =>
         `The value sent was not a valid hexdecimal colour string. Change was not applied.`,
-    errorInvalidSchema: (actionName: string) => 
+    errInvalidSchema: (actionName: string) => 
         `Action rejected: The data given does not match the schema for action ${actionName}`,
+    errInvalidAction: (actionName: string) =>
+        `Action reject: The action ${actionName} is not a valid action in the current scene (un/register error)`,
     game_list: (gameList: string) => 
         `The current games available are: ${gameList}`,
     choose_game: () => 
@@ -31,6 +33,18 @@ export const menuActionSocketTexts = {
 export enum OutMenuActions {
     go_to_menu = "go_to_menu",  //no payload for both
     retry_game = "retry_game"
+}
+
+export const goToMenuAction: ActionType = {
+    name: OutMenuActions.go_to_menu,
+    description: menuActionSocketTexts.go_to_menu(),
+    schema: {}
+}
+
+export const retryGameAction: ActionType = {
+    name: OutMenuActions.retry_game,
+    description: menuActionSocketTexts.retry_game(),
+    schema: {}
 }
 
 //actions once in the game menu

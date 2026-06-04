@@ -324,19 +324,19 @@ export class MancalaBoard extends Container {
     private getBoardStateString(playerId: number): string {
         return `
         Board representation:
-        - Pits 0-5 belong to ${playerId == 1 ? "You" : "Player 1"}.
-        - Store 6 belongs to ${playerId == 1 ? "You" : "Player 1"}.
-        - Pits 7-12 belong to ${playerId == 2 ? "You" : "Player 2"}.
-        - Store 13 belongs to ${playerId == 2 ? "You" : "Player 2"}.
+        - Pits 0-5 belong to ${playerId == 1 ? "You" : this.gameState.getPlayerName(1)}.
+        - Store 6 belongs to ${playerId == 1 ? "You" : this.gameState.getPlayerName(1)}.
+        - Pits 7-12 belong to ${playerId == 2 ? "You" : this.gameState.getPlayerName(2)}.
+        - Store 13 belongs to ${playerId == 2 ? "You" : this.gameState.getPlayerName(2)}.
 
         Raw board array:
         ${this.board.map((pit) => `${pit.getIndexStoreRep()}`).join(", ")}
 
-        ${playerId == 1 ? "Your" : "Player 1"} pits: ${this.getPlayerPitStateString(1)}
-        ${playerId == 1 ? "Your" : "Player 1"} store: ${this.board[6].getSeedHeld()}
+        ${playerId == 1 ? "Your" : this.gameState.getPlayerName(1) + "'s"} pits: ${this.getPlayerPitStateString(1)}
+        ${playerId == 1 ? "Your" : this.gameState.getPlayerName(1) + "'s"} store: ${this.board[6].getSeedHeld()}
 
-        ${playerId == 2 ? "Your" : "Player 2"} pits: ${this.getPlayerPitStateString(2)}
-        ${playerId == 2 ? "Your" : "Player 2"} store: ${this.board[13].getSeedHeld()}
+        ${playerId == 2 ? "Your" : this.gameState.getPlayerName(2) + "'s"} pits: ${this.getPlayerPitStateString(2)}
+        ${playerId == 2 ? "Your" : this.gameState.getPlayerName(2) + "'s"} store: ${this.board[13].getSeedHeld()}
         `
     }
 
