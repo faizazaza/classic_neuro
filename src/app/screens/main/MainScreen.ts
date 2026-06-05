@@ -13,6 +13,8 @@ import { GameList } from "../../game/GameList";
 import { GameState } from "./GameState";
 import { SocketGameInterface } from "../../websocket/SocketGameInterface";
 import { GameMenu } from "../../game/Menu/GameMenu";
+import { EndGameMenu } from "../../game/Menu/endGameMenu";
+import { Game } from "../../game/GameAbstract";
 
 /** The screen that holds the app */
 export class MainScreen extends Container {
@@ -22,6 +24,7 @@ export class MainScreen extends Container {
   private gameState: GameState;
   private gameInterface: SocketGameInterface;
   private gameMenu: GameMenu;
+  private endGameMenu: EndGameMenu;
 
   public mainContainer: Container;
   private pauseButton: FancyButton;
@@ -35,7 +38,8 @@ export class MainScreen extends Container {
 
     this.gameState = new GameState
     this.gameMenu = new GameMenu(this.gameState, this.setGame)
-    this.gameInterface = new SocketGameInterface(this.gameState, this.gameMenu)
+    this.endGameMenu = new EndGameMenu(screen.width, screen.height, this.showGameArray)
+    this.gameInterface = new SocketGameInterface(this.gameState, this.gameMenu, this.endGameMenu)
 
     this.mainContainer = new Container();
     this.addChild(this.mainContainer);
@@ -155,8 +159,19 @@ export class MainScreen extends Container {
     //TODO switch case here
     //also make an abstract game class MancalaGame can extend from
     this.gameState.newGame(selectedGame);
-    const game = new MancalaGame(this.gameState, screen.width, screen.height);
-    game.onHomePressed = () => {this.showGameArray()}
+    let game: Game | null  = null;
+
+    switch (selectedGame) {
+      case GameList.Mancala:
+        game = new MancalaGame(this.gameState);
+        break;
+    
+      default:
+        break;
+    }
+
+    if (game == null){console.log("ERROR! game is null"); return}
+
     this.reset();
     this.mainContainer.addChild(game);
     this.gameInterface.startGame(game);

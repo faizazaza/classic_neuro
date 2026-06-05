@@ -1,7 +1,8 @@
 
 import { Game } from "../game/GameAbstract";
+import { EndGameMenu } from "../game/Menu/endGameMenu";
 import { GameMenu } from "../game/Menu/GameMenu";
-import { colourResponseSchema, InMenuActions, menuActionSocketTexts, nameResponseSchema } from "../game/Menu/MenuActions";
+import { InMenuActions } from "../game/Menu/MenuActions";
 import { GameState } from "../screens/main/GameState";
 import { ActionType, CommandEnum, GameMsg, priorityEnum, ServerMsg } from "../types/ActionTypes";
 
@@ -15,15 +16,29 @@ export class SocketGameInterface{
 
     public gameState: GameState;  
     private gameMenu: GameMenu;  
+    private endGameMenu: EndGameMenu;
     private currGame!: Game;
 
-    constructor(state: GameState, gameMenu: GameMenu){
+    constructor(state: GameState, gameMenu: GameMenu, endGameMenu: EndGameMenu){
         this.gameState = state;
         this.gameMenu = gameMenu;
+        this.endGameMenu = endGameMenu;
+        this.endGameMenu.setButtonFuctions(this.exitGame, this.restartGame)
         //add one mouse player and one socket player
         this.gameState.addPlayer("mouse", "AE2448", false);
-        this.gameState.addPlayer("socket", "72BAA9", true, (msg: ServerMsg, playerId: number, playerName: string) => this.handleSocketMsg(msg, playerId, playerName));
-        
+        //this.gameState.addPlayer("mouse", "72BAA9", false);
+        this.gameState.addPlayer(
+            "socket", 
+            "72BAA9", 
+            true, 
+            (msg: ServerMsg, playerId: number, playerName: string) => this.handleSocketMsg(msg, playerId, playerName),
+            () => this.onSocketConnection()
+        );
+    }
+
+    //any actions to run after a socket connects
+    private onSocketConnection(){
+        this.handleMenuActions(true, true)
     }
 
     public startGame(newGame: Game) {
@@ -34,12 +49,12 @@ export class SocketGameInterface{
 
         this.currGame = newGame;
         //assign override functions
+        this.currGame.cascadeGameEnd = this.endGame;
         this.currGame.sendGameContext = this.sendGameContext;
         this.currGame.sendActionList = this.sendActionList;
         this.currGame.sendActionForce = this.sendActionForce;
         this.currGame.sendActionResult = this.sendActionResult;
         this.currGame.unregisterAction = this.unregisterAction;
-        this.currGame.handleMenuActions = this.handleMenuActions;
 
         //send startup messages to socket players
         //maybe a bit overkill for like 2 players
@@ -58,8 +73,8 @@ export class SocketGameInterface{
         this.currGame.startGame();
     }
 
-
     private handleMenuActions(inMenu: boolean, register: boolean){
+        console.log("in handleMenuActions")
         const menuActions = inMenu ? this.gameMenu.getInMenuActionList() : this.gameMenu.getOutMenuActionList()
         console.log(menuActions)
 
@@ -75,8 +90,16 @@ export class SocketGameInterface{
         }
     }
 
+    //called by this.currGame, triggers this.endGameMenu to show
+    private endGame() {
+        //register out-menu actions
+        console.log(this.handleMenuActions)
+        this.handleMenuActions(false, true);
 
+        this.endGameMenu.showMenu();
+    }
 
+    //called by this.endGameMenu
     public exitGame() {
         //destroy game and unregister all game related actions
         this.currGame.destroy();
@@ -85,6 +108,26 @@ export class SocketGameInterface{
         this.handleMenuActions(false, false);
         //register in-menu action
         this.handleMenuActions(true, true);
+    }
+
+    //called by this.endGameMenu
+    private restartGame() {
+        this.handleMenuActions(false, false);
+
+        //do i send startup messages here???
+        //or should i send a new context message?
+        for (const player of this.gameState.players){
+            if (player.isSocketPlayer){
+                const msg: GameMsg = {
+                    command: CommandEnum.startup,
+                    game: this.gameState.getGameName()
+                }
+                console.log(msg)
+                //no reason for this to be undefined really
+                player.socket?.sendGameMsg(msg);
+            }
+        }
+        this.currGame.startGame();
     }
 
 
@@ -159,9 +202,6 @@ export class SocketGameInterface{
 
 
     //first check if a game is active!! if its not then we need to use the menu
-
-
-
     //game-based types? maybe just let the game return the error
     public handleSocketMsg(msg: ServerMsg, playerId: number, playerName: string) {
 

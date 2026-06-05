@@ -12,7 +12,13 @@ export class GameState {
 
     public players: PlayerState[] = [];
 
-    public addPlayer(name: string, colour: string, isSocket: boolean, onSocketMsg: (msg: ServerMsg, playerId: number, playerName: string) => void = () => {}) {
+    public addPlayer(
+        name: string, 
+        colour: string, 
+        isSocket: boolean, 
+        onSocketMsg: (msg: ServerMsg, playerId: number, playerName: string) => void = () => {},
+        onSocketConnection: () => void = () => {}
+    ) {
         const playersLength = this.players.length;
         this.players[playersLength] = {
             playerName: name,
@@ -20,7 +26,13 @@ export class GameState {
             playerColour: colour,
             playerWins: 0,
             isSocketPlayer: isSocket,
-            socket: isSocket ? new SocketPlayer("ws://localhost:8000", name, playersLength + 1, onSocketMsg) : undefined
+            socket: isSocket ? new SocketPlayer(
+                "ws://localhost:8000", 
+                name, 
+                playersLength + 1, 
+                onSocketMsg,
+                onSocketConnection
+            ) : undefined
         }
     }
 
@@ -36,7 +48,7 @@ export class GameState {
         this.gameActive = false;
     }
 
-    public getGameName(){return this.currentGame?.toString() ?? "no game found"}
+    public getGameName(){return this.currentGame?.toString() ?? "Menu"}
 
     public isGameActive(){return this.gameActive}
 

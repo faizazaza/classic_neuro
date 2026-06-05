@@ -2,8 +2,6 @@ import { Text } from "pixi.js";
 import { GameState } from "../../screens/main/GameState";
 import { MancalaBoard } from "./MancalaBoard";
 import { engine } from "../../getEngine";
-import { ConfettiEmitter } from "../ConfettiEmitter";
-import { FancyButton } from "@pixi/ui";
 import { Game } from "../GameAbstract";
 import { ActionType, CommandEnum, GameMsg, priorityEnum, ServerMsg } from "../../types/ActionTypes";
 import { MancalaActions, mancalaSocketTexts, pickPitAction, pickResponseSchema } from "./MancalaActions";
@@ -19,84 +17,27 @@ export class MancalaGame extends Game {
     private board!: MancalaBoard;
     private topText!: Text;
     private gameState: GameState;
-    private confetti: ConfettiEmitter;
-    private restartButton: FancyButton;
-    private homeButton: FancyButton;
-
-    private screenWidth: number;
-    private screenHeight: number;
-
-    public onHomePressed?: () => void;
 
     //should be overriden with method in SocketGameInterface
+    public cascadeGameEnd: () => void;
     public sendGameContext: (playerId: number, message: string, isSilent: boolean) => void;
     public sendActionList: (playerId: number, actionList: ActionType[]) => void;
     public sendActionForce: (playerId: number, stateVal: string, queryVal: string, actionList: string[], priorityVal: priorityEnum) => void;
     public sendActionResult: (playerId: number, actionId: string, successVal: boolean, messageVal?: string) => void
     public unregisterAction: (playerId: number, actionList: string[]) => void
-    public handleMenuActions: (inMenu: boolean, register: boolean) => void;
 
-    constructor(state: GameState, screenWidth: number, screenHeight: number){
+    constructor(state: GameState){
         super();
         this.gameState = state;
-        this.screenWidth = screenWidth;
-        this.screenHeight = screenHeight;
         engine().ticker.autoStart = true;
 
-        this.confetti = new ConfettiEmitter();
-
-        this.restartButton = new FancyButton({
-            defaultView: "icon-replay.png",
-            anchor: 0.5,
-            scale: 1,
-            animations: {
-                hover: {
-                    props: {
-                        scale: { x: 1.1, y: 1.1 },
-                    },
-                    duration: 100,
-                },
-            },
-        })
-        this.restartButton.x = 100;
-        this.restartButton.y = 300;
-
-        this.restartButton.onPress.connect(() => {
-            this.removeChildren();
-            //unregister out-menu actions that were previously enabled
-            this.handleMenuActions(false, false);
-            this.startGame();
-            this.drawGame();
-        });
-
-        this.homeButton = new FancyButton({
-            defaultView: "icon-home.png",
-            anchor: 0.5,
-            scale: 1,
-            animations: {
-                hover: {
-                    props: {
-                        scale: { x: 1.1, y: 1.1 },
-                    },
-                    duration: 100,
-                },
-            },
-        })
-        this.homeButton.x = -100;
-        this.homeButton.y = 300;
-
-        this.homeButton.onPress.connect(() => {
-            this.gameState.gameEnd();
-            this.onHomePressed?.()
-        });
-
-        //temp functions to start init <- these functions need to be overriden!
+        //temp functions to start in(n)it <- these functions need to be overriden!
+        this.cascadeGameEnd = () => {throw new Error("Method not implemented.");}
         this.sendGameContext = () => {throw new Error("Method not implemented.");}
         this.sendActionList = () => {throw new Error("Method not implemented.");}
         this.sendActionForce = () => {throw new Error("Method not implemented.");}
         this.sendActionResult = () => {throw new Error("Method not implemented.");}
         this.unregisterAction = () => {throw new Error("Method not implemented.");}
-        this.handleMenuActions = () => {throw new Error("Method not implemented.");}
 
     }
 
@@ -104,21 +45,11 @@ export class MancalaGame extends Game {
         this.addChild(this.board);
         //topText
         this.addChild(this.topText);
-
-        this.addChild(this.restartButton);
-
-        this.restartButton.visible = false;
-        this.restartButton.enabled = false;
-
-        this.addChild(this.homeButton);
-
-        this.homeButton.visible = false;
-        this.homeButton.enabled = false;
-
-        this.addChild(this.confetti);
+        //bottom text                       (there is no botton text)
     }
 
     public startGame() {
+        this.removeChildren();
 
         this.gameState.randomPlayerAssign();
 
@@ -170,18 +101,6 @@ export class MancalaGame extends Game {
     endGame = (winner: number) => {
         this.topText.style.fill = this.gameState.getPlayerColour(winner);
         this.topText.text = `Winner is Player ${winner}!`;
-        for (let i = 0; i <= 5; i++) {
-            const xVal = (-this.screenWidth/2) + ((this.screenWidth) / 5 * i)
-            this.confetti.burst(xVal, -this.screenHeight/2, 120);
-        }
-        this.restartButton.visible = true;
-        this.restartButton.enabled = true;
-
-        this.homeButton.visible = true;
-        this.homeButton.enabled = true;
-
-        //register out-menu actions
-        this.handleMenuActions(false, true);
 
         this.gameState.updateWinner(winner)
 
@@ -190,6 +109,9 @@ export class MancalaGame extends Game {
                 this.unregisterAction(i, [MancalaActions.pick_pit])
             } 
         }
+
+        //call function assigned from Game Interface for game menu actions
+        this.cascadeGameEnd();
 
     }
 

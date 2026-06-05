@@ -61,7 +61,7 @@ export class GameMenu extends Container {
 
     //customisation functions
     private updatePlayerName(playerId: number, msg: ServerMsg): GameMsg {
-        const parseResult = nameResponseSchema.safeParse(msg.data.data);
+        const parseResult = nameResponseSchema.safeParse(JSON.parse(msg.data.data ?? ""));
         if (!parseResult.success){
             return this.buildResultMsg(
                 msg.data.id, 
@@ -72,6 +72,8 @@ export class GameMenu extends Container {
 
         this.gameState.setPlayerName(playerId, parseResult.data.name)
 
+        console.log(this.gameState.getPlayerName(playerId))
+
 
         return this.buildResultMsg(
             msg.data.id, 
@@ -81,7 +83,7 @@ export class GameMenu extends Container {
 
     public updatePlayerColour(playerId: number, msg: ServerMsg): GameMsg {
         //check if an actual hex value was returned, if it then send back an error
-        const parseResult = colourResponseSchema.safeParse(msg.data.data);
+        const parseResult = colourResponseSchema.safeParse(JSON.parse(msg.data.data ?? ""));
         if (!parseResult.success){
             return this.buildResultMsg(
                 msg.data.id, 

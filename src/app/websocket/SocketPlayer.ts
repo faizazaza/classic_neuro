@@ -7,13 +7,21 @@ export class SocketPlayer {
     private playerId: number
 
     public onSocketMsg!: (msg: ServerMsg, playerId: number, playerName: string) => void;
+    private onSocketConnection: () => void;
 
 
-    constructor(url: string, name: string, player: number, onSocketMsg: (msg: ServerMsg, playerId: number, playerName: string) => void){
+    constructor(
+        url: string, 
+        name: string, 
+        player: number, 
+        onSocketMsg: (msg: ServerMsg, playerId: number, playerName: string) => void,
+        onSocketConnection: () => void
+    ){
         this.playerName = name;
         this.startWebsocket(url)
         this.playerId = player;
         this.onSocketMsg = (msg: ServerMsg, playerId: number, playerName: string) => {onSocketMsg(msg, playerId, playerName)}
+        this.onSocketConnection = onSocketConnection;
     }
 
     public startWebsocket = (url: string) => {
@@ -28,6 +36,7 @@ export class SocketPlayer {
 
         socket.onopen = () => {
             console.log(`Player ${this.playerId} connected to Websocket. Name: ${this.playerName}`);
+            this.onSocketConnection();
         };
 
         socket.onerror = (event: Event) => {

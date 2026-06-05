@@ -55,13 +55,13 @@ export enum InMenuActions {
 }
 
 export const chooseGameSchema = z.object({
-    game: z.enum(GameList)  //check if i need to use GameListEnum instead, if not, remove that one
+    game: GameListEnum  //check if i need to use GameListEnum instead, if not, remove that one
 })
 
 export const chooseGameAction: ActionType = {
     name: InMenuActions.choose_game,
     description: menuActionSocketTexts.choose_game(),
-    schema: chooseGameSchema
+    schema: z.toJSONSchema(chooseGameSchema)
 }
 
 
@@ -72,7 +72,7 @@ export const nameResponseSchema = z.object({
 export const changeNameAction: ActionType = {
     name: InMenuActions.change_name,
     description: menuActionSocketTexts.change_name(),
-    schema: nameResponseSchema
+    schema: z.toJSONSchema(nameResponseSchema)
 }
 
 export const colourResponseSchema = z.object({
@@ -82,5 +82,5 @@ export const colourResponseSchema = z.object({
 export const changeColourAction: ActionType = {
     name: InMenuActions.change_colour,
     description: menuActionSocketTexts.change_colour(),
-    schema: colourResponseSchema
+    schema: z.toJSONSchema(colourResponseSchema)
 }
