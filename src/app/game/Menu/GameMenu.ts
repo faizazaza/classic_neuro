@@ -2,7 +2,7 @@ import { Container } from "pixi.js";
 import { GameList } from "../GameList";
 import { GameArray } from "./GameArray";
 import { GameState } from "../../screens/main/GameState";
-import { changeColourAction, changeNameAction, chooseGameAction, colourResponseSchema, goToMenuAction, InMenuActions, menuActionSocketTexts, nameResponseSchema, retryGameAction } from "./MenuActions";
+import { changeColourAction, changeNameAction, chooseGameAction, chooseGameSchema, colourResponseSchema, goToMenuAction, InMenuActions, menuActionSocketTexts, nameResponseSchema, retryGameAction } from "./MenuActions";
 import { CommandEnum, GameMsg, ServerMsg } from "../../types/ActionTypes";
 
 export class GameMenu extends Container {
@@ -41,23 +41,52 @@ export class GameMenu extends Container {
     public unregisterActions(){}
 
     public handleAction(msg: ServerMsg, playerId: number, playerName: string): GameMsg{
-        if (msg.data.name in InMenuActions){    //not a valid action handle?? is that even possible?
+        if (msg.data.name in InMenuActions){    
             switch (msg.data.name) {
                 case InMenuActions.change_colour:
                     return this.updatePlayerColour(playerId, msg);
                 case InMenuActions.change_name:
                     return this.updatePlayerName(playerId, msg);
-            
+                case InMenuActions.choose_game:
+                    return this.socketChooseGame(playerId, msg);
                 default:
                     break;
             }
         }
-        return this.buildResultMsg(
+        return this.buildResultMsg( //not a valid action sent?? is that even possible?
             msg.data.id,
             false,
-            
+            //msg?
         )
     }
+
+    private socketChooseGame(playerId: number, msg: ServerMsg): GameMsg {
+        const parseResult = chooseGameSchema.safeParse(JSON.parse(msg.data.data ?? ""));
+        if (!parseResult.success){
+            return this.buildResultMsg(
+                msg.data.id, 
+                false, 
+                menuActionSocketTexts.errInvalidSchema(msg.data.name)
+            )
+        }
+        const selectedGame = parseResult.data.game;
+
+        if (selectedGame in GameList){
+            this.onGameSelect(selectedGame)
+            return this.buildResultMsg(
+                msg.data.id, 
+                true
+            )
+        }
+        else {
+            return this.buildResultMsg(
+                msg.data.id, 
+                false, 
+                menuActionSocketTexts.errInvalidGame(selectedGame)
+            )
+        }
+    }
+
 
     //customisation functions
     private updatePlayerName(playerId: number, msg: ServerMsg): GameMsg {
@@ -81,7 +110,7 @@ export class GameMenu extends Container {
         )
     }
 
-    public updatePlayerColour(playerId: number, msg: ServerMsg): GameMsg {
+    private updatePlayerColour(playerId: number, msg: ServerMsg): GameMsg {
         //check if an actual hex value was returned, if it then send back an error
         const parseResult = colourResponseSchema.safeParse(JSON.parse(msg.data.data ?? ""));
         if (!parseResult.success){

@@ -5,7 +5,7 @@
 
 import z from "zod"
 import { ActionType } from "../../types/ActionTypes"
-import { GameList, GameListEnum } from "../GameList"
+import { GameListEnum } from "../GameList"
 
 
 export const menuActionSocketTexts = {
@@ -22,7 +22,9 @@ export const menuActionSocketTexts = {
     errInvalidSchema: (actionName: string) => 
         `Action rejected: The data given does not match the schema for action ${actionName}`,
     errInvalidAction: (actionName: string) =>
-        `Action reject: The action ${actionName} is not a valid action in the current scene (un/register error)`,
+        `Action rejected: The action ${actionName} is not a valid action in the current scene (un/register error)`,
+    errInvalidGame: (selectedGame: string) => 
+        `Action rejected: The given game ${selectedGame} is not a valid game`,
     game_list: (gameList: string) => 
         `The current games available are: ${gameList}`,
     choose_game: () => 
