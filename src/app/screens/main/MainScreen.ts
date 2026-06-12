@@ -13,7 +13,7 @@ import { GameList } from "../../game/GameList";
 import { GameState } from "./GameState";
 import { SocketGameInterface } from "../../websocket/SocketGameInterface";
 import { GameMenu } from "../../game/Menu/GameMenu";
-import { EndGameMenu } from "../../game/Menu/endGameMenu";
+import { EndGameMenu } from "../../game/Menu/EndGameMenu";
 import { Game } from "../../game/GameAbstract";
 
 /** The screen that holds the app */
@@ -174,6 +174,7 @@ export class MainScreen extends Container {
 
     this.reset();
     this.mainContainer.addChild(game);
+    this.mainContainer.addChild(this.endGameMenu);
     this.gameInterface.startGame(game);
   }
 

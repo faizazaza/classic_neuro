@@ -51,10 +51,10 @@ export class MancalaPit extends Container {
         return seeds;
     }
 
-    public addSeed(numUpdated: number, plusSeed = 1): void {
-        this.seedHeld += plusSeed;
+    public addSeed(numUpdated: number, instant = false): void {
+        this.seedHeld += numUpdated;
         // this.seedText.text = this.seedHeld
-        this.animateText(this.seedText, numUpdated)
+        this.animateText(this.seedText, numUpdated, instant)
     }
 
     public getSeedHeld(): number {
@@ -139,8 +139,8 @@ export class MancalaPit extends Container {
         this.pitButton.enabled = false;
     }
 
-    private async animateText(text: Text, numUpdated: number) {
-        await waitFor(MancalaPit.WAIT_DURATION * numUpdated);  //visual wait
+    private async animateText(text: Text, numUpdated: number, instant = false) {
+        if (!instant) {await waitFor(MancalaPit.WAIT_DURATION * numUpdated);}  //visual wait
         text.text = this.seedHeld;
         let life = 60;
 

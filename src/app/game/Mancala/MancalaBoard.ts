@@ -136,8 +136,8 @@ export class MancalaBoard extends Container {
         return this.board[(player * 7) - 1].getSeedHeld();
     }
 
-    private placeSeedInStore(player: number, seeds: number){
-        this.board[(player * 7) - 1].addSeed(seeds);
+    private placeSeedInStore(player: number, seeds: number, instant = false){
+        this.board[(player * 7) - 1].addSeed(seeds, instant);
     }
 
     //when a pit is selected, fill in the next pits by the number of seeds in the selected pit
@@ -170,21 +170,21 @@ export class MancalaBoard extends Container {
     //check if the pits on either end are empty
     //winner keeps all their seeds
     private checkEnd(): boolean {
-        let player1PitScore = 0;
-        let player2PitScore = 0;
+        let player1PitTotal = 0;
+        let player2PitTotal = 0;
 
         for (let i = 0; i < MancalaBoard.boardSize; i++) {
-            if (i < 6) {player1PitScore += this.board[i].getSeedHeld()}
-            else if (i > 6 && i < 13) {player2PitScore += this.board[i].getSeedHeld()} 
+            if (i < 6) {player1PitTotal += this.board[i].getSeedHeld()}
+            else if (i > 6 && i < 13) {player2PitTotal += this.board[i].getSeedHeld()} 
         }
 
-        if (player1PitScore == 0){
-            this.placeSeedInStore(2, player2PitScore);
+        if (player1PitTotal == 0){
+            this.placeSeedInStore(2, player2PitTotal, true);
             this.finishUpGame();
             return true;
         }
-        if (player2PitScore == 0){
-            this.placeSeedInStore(1, player1PitScore);
+        if (player2PitTotal == 0){
+            this.placeSeedInStore(1, player1PitTotal, true);
             this.finishUpGame();
             return true;
         }

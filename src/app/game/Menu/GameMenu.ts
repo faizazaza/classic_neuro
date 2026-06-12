@@ -2,7 +2,7 @@ import { Container } from "pixi.js";
 import { GameList } from "../GameList";
 import { GameArray } from "./GameArray";
 import { GameState } from "../../screens/main/GameState";
-import { changeColourAction, changeNameAction, chooseGameAction, chooseGameSchema, colourResponseSchema, goToMenuAction, InMenuActions, menuActionSocketTexts, nameResponseSchema, retryGameAction } from "./MenuActions";
+import { changeColourAction, changeNameAction, chooseGameAction, chooseGameSchema, colourResponseSchema, InMenuActions, menuActionSocketTexts, nameResponseSchema } from "./MenuActions";
 import { CommandEnum, GameMsg, ServerMsg } from "../../types/ActionTypes";
 
 export class GameMenu extends Container {
@@ -34,13 +34,10 @@ export class GameMenu extends Container {
         return [chooseGameAction, changeNameAction, changeColourAction];
     }
 
-    public getOutMenuActionList(){
-        return [goToMenuAction, retryGameAction];
-    }
-
     public unregisterActions(){}
 
     public handleAction(msg: ServerMsg, playerId: number, playerName: string): GameMsg{
+        console.log("in GameMenu with" + msg.data.name)
         if (msg.data.name in InMenuActions){    
             switch (msg.data.name) {
                 case InMenuActions.change_colour:
@@ -150,7 +147,7 @@ export class GameMenu extends Container {
     private buildResultMsg(actionId: string, success: boolean, message?: string): GameMsg {
         const gameMsg: GameMsg = {
             command: CommandEnum.result,
-            game: "Menu",    //????
+            game: "Menu",
             data: {
                 id: actionId,
                 success: success,

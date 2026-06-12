@@ -50,6 +50,7 @@ export class MancalaGame extends Game {
 
     public startGame() {
         this.removeChildren();
+        this.gameOver = false;
 
         this.gameState.randomPlayerAssign();
 
@@ -99,6 +100,8 @@ export class MancalaGame extends Game {
     }
 
     endGame = (winner: number) => {
+        console.log(winner)
+        this.gameOver = true;
         this.topText.style.fill = this.gameState.getPlayerColour(winner);
         this.topText.text = `Winner is Player ${winner}!`;
 

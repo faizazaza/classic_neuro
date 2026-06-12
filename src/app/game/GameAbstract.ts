@@ -9,8 +9,11 @@ import { ActionType, GameMsg, priorityEnum, ServerMsg } from "../types/ActionTyp
 //start game
 export abstract class Game extends Container {
 
+    gameOver: boolean
+
     constructor(){
         super()
+        this.gameOver = false;
     }
 
     public abstract startGame(): void;
