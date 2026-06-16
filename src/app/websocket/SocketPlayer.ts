@@ -1,4 +1,4 @@
-import { GameMsg, ServerMsg } from "../types/ActionTypes";
+import { CommandEnum, GameMsg, ServerMsg } from "../types/ActionTypes";
 
 export class SocketPlayer {
 
@@ -8,6 +8,7 @@ export class SocketPlayer {
 
     public onSocketMsg!: (msg: ServerMsg, playerId: number, playerName: string) => void;
     private onSocketConnection: () => void;
+    gameState: any;
 
 
     constructor(
@@ -36,6 +37,12 @@ export class SocketPlayer {
 
         socket.onopen = () => {
             console.log(`Player ${this.playerId} connected to Websocket. Name: ${this.playerName}`);
+            const msg: GameMsg = {
+                command: CommandEnum.startup,
+                game: "Menu"
+            }
+            console.log(msg)
+            this.sendGameMsg(msg);
             this.onSocketConnection();
         };
 

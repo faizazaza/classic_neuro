@@ -27,12 +27,19 @@ export class SocketGameInterface{
             this.restartGame
         );
         //add one mouse player and one socket player
-        this.gameState.addPlayer("mouse", "AE2448", false);
+        //this.gameState.addPlayer("mouse", "AE2448", false);
         //this.gameState.addPlayer("mouse", "72BAA9", false);
         this.gameState.addPlayer(
             "socket", 
             "72BAA9", 
-            true, 
+            "ws://localhost:8000", 
+            (msg: ServerMsg, playerId: number, playerName: string) => this.handleSocketMsg(msg, playerId, playerName),
+            () => this.onSocketConnection()
+        );
+        this.gameState.addPlayer(
+            "socket", 
+            "72BAA9", 
+            "ws://localhost:8001", 
             (msg: ServerMsg, playerId: number, playerName: string) => this.handleSocketMsg(msg, playerId, playerName),
             () => this.onSocketConnection()
         );
@@ -41,17 +48,6 @@ export class SocketGameInterface{
 
     //any actions to run after a socket connects
     private onSocketConnection = () => {
-        for (const player of this.gameState.players){
-            if (player.isSocketPlayer){
-                const msg: GameMsg = {
-                    command: CommandEnum.startup,
-                    game: this.gameState.getGameName()
-                }
-                console.log(msg)
-                player.socket?.sendGameMsg(msg);
-            }
-        }
-
         this.handleMenuActions(true, true)
     }
 

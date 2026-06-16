@@ -15,7 +15,7 @@ export class GameState {
     public addPlayer(
         name: string, 
         colour: string, 
-        isSocket: boolean, 
+        socketUrl: string | null, 
         onSocketMsg: (msg: ServerMsg, playerId: number, playerName: string) => void = () => {},
         onSocketConnection: () => void = () => {}
     ) {
@@ -25,9 +25,9 @@ export class GameState {
             playerIndex: playersLength + 1,
             playerColour: colour,
             playerWins: 0,
-            isSocketPlayer: isSocket,
-            socket: isSocket ? new SocketPlayer(
-                "ws://localhost:8000", 
+            isSocketPlayer: socketUrl != null,
+            socket: socketUrl ? new SocketPlayer(
+                socketUrl, 
                 name, 
                 playersLength + 1, 
                 onSocketMsg,
