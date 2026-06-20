@@ -7,7 +7,7 @@ export class SocketPlayer {
     private playerId: number
 
     public onSocketMsg!: (msg: ServerMsg, playerId: number, playerName: string) => void;
-    private onSocketConnection: () => void;
+    private onSocketConnection: (id: number) => void;
     gameState: any;
 
 
@@ -16,7 +16,7 @@ export class SocketPlayer {
         name: string, 
         player: number, 
         onSocketMsg: (msg: ServerMsg, playerId: number, playerName: string) => void,
-        onSocketConnection: () => void
+        onSocketConnection: (id: number) => void
     ){
         this.playerName = name;
         this.startWebsocket(url)
@@ -43,7 +43,7 @@ export class SocketPlayer {
             }
             console.log(msg)
             this.sendGameMsg(msg);
-            this.onSocketConnection();
+            this.onSocketConnection(this.playerId);
         };
 
         socket.onerror = (event: Event) => {
@@ -52,10 +52,9 @@ export class SocketPlayer {
 
         //recieves all of the inputs
         socket.onmessage = (event) => {
+            console.log(`Message received from Player ${this.playerId} Name: ${this.playerName}`);
             const msg: ServerMsg = JSON.parse(event.data);  
-            //this is blind faith that ill be sent something that will fit this, #
-            // but it doesnt i need to be able to send an action id to stay that its bad,,, 
-            // which i can't guarantee would be there?
+            //this is blind faith that ill be sent something that will fit this
             
             //ALSO SEND PLAYER NUMBER & NAME TO THE GAME
             this.onSocketMsg(msg, this.playerId, this.playerName)
@@ -68,6 +67,7 @@ export class SocketPlayer {
     }
 
     public sendGameMsg(msg: GameMsg) {
+        console.log(`sendGameMsg for ${this.playerId}  Name: ${this.playerName}`)
         this.wbs.send(JSON.stringify(msg))
     }
 

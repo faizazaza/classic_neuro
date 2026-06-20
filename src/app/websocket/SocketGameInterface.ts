@@ -28,27 +28,28 @@ export class SocketGameInterface{
         );
         //add one mouse player and one socket player
         //this.gameState.addPlayer("mouse", "AE2448", false);
-        //this.gameState.addPlayer("mouse", "72BAA9", false);
+        
         this.gameState.addPlayer(
             "socket", 
             "72BAA9", 
             "ws://localhost:8000", 
             (msg: ServerMsg, playerId: number, playerName: string) => this.handleSocketMsg(msg, playerId, playerName),
-            () => this.onSocketConnection()
+            (id: number) => this.onSocketConnection(id)
         );
         this.gameState.addPlayer(
             "socket", 
             "72BAA9", 
             "ws://localhost:8001", 
             (msg: ServerMsg, playerId: number, playerName: string) => this.handleSocketMsg(msg, playerId, playerName),
-            () => this.onSocketConnection()
+            (id: number) => this.onSocketConnection(id)
         );
+        //this.gameState.addPlayer("mouse", "72BAA9", null);
 
     }
 
     //any actions to run after a socket connects
-    private onSocketConnection = () => {
-        this.handleMenuActions(true, true)
+    private onSocketConnection = (id: number) => {
+        this.handleMenuActionsSingle(id, true, true)
     }
 
     public startGame(newGame: Game) {
@@ -97,6 +98,25 @@ export class SocketGameInterface{
                 }
             }
         }
+    }
+
+    private handleMenuActionsSingle(id: number, inMenu: boolean, register: boolean){
+        console.log("in handleMenuActionsSingle")
+        const menuActions = inMenu ? this.gameMenu.getInMenuActionList() : this.endGameMenu.getOutMenuActionList()
+        const player = this.gameState.players[id-1]
+
+        if (player.isSocketPlayer){
+            if (register){
+                this.sendActionList(player.playerIndex, menuActions)
+            }
+            else {
+                this.unregisterAction(player.playerIndex, menuActions.map((a) => a.name))
+            }
+        }
+        else {
+            console.error(`Error: handleMenuActionsSingle called for non-socket player Id:${id}`)
+        }
+
     }
 
     //called by this.currGame, triggers this.endGameMenu to show
@@ -215,9 +235,11 @@ export class SocketGameInterface{
 
         //in menu actions
         if (!this.gameState.isGameActive()){
-            if (this.currGame.gameOver){
+            if (this.currGame){ //at the start this is undefined
+                if (this.currGame.gameOver){
                 this.gameState.players[playerId-1].socket?.sendGameMsg(this.endGameMenu.handleAction(playerId, msg, playerName));
                 return;
+                }
             }
             this.gameState.players[playerId-1].socket?.sendGameMsg(this.gameMenu.handleAction(msg, playerId, playerName))
             return;

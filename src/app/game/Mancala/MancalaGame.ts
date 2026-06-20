@@ -77,7 +77,7 @@ export class MancalaGame extends Game {
         this.board.sendActionResult = this.sendActionResult;
 
         this.topText = new Text({
-            text: `Player ${this.gameState.getCurrentPlayer()}'s Turn`,
+            text: `${this.gameState.getCurrentPlayerName()}'s Turn`,
             style: {
             fontSize: 50,
             fill: this.gameState.getCurrentPlayerColour(),
@@ -95,7 +95,7 @@ export class MancalaGame extends Game {
 
 
     updateTurnText = (player: number) => {
-        this.topText.text = `Player ${player}'s Turn`;
+        this.topText.text = `${this.gameState.getCurrentPlayerName()}'s Turn`;
         this.topText.style.fill = this.gameState.getCurrentPlayerColour();
     }
 
@@ -103,7 +103,7 @@ export class MancalaGame extends Game {
         console.log(winner)
         this.gameOver = true;
         this.topText.style.fill = this.gameState.getPlayerColour(winner);
-        this.topText.text = `Winner is Player ${winner}!`;
+        this.topText.text = `Winner is ${this.gameState.getCurrentPlayerName()}!`;
 
         this.gameState.updateWinner(winner)
 
@@ -133,7 +133,7 @@ export class MancalaGame extends Game {
                 return this.buildResultMsg(msg.data.id, false, mancalaSocketTexts.errorInvalidSchema(msg.data.name))
             }
             const pit = parseResult.data.pit
-            if (pit > 13 || pit < 0){
+            if (pit >= 13 || pit <= 0){
                 return this.buildResultMsg(msg.data.id, false, mancalaSocketTexts.errorInvalidPit(pit))
             }
             const pitOwner = pit < 7 ? 1 : 2;

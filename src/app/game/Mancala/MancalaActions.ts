@@ -1,5 +1,6 @@
 import { ActionType } from "../../types/ActionTypes";
 import { z } from "zod";
+import { removeSchemaTag } from "../../utils/actionUtil";
 
 
 export const mancalaSocketTexts = {
@@ -47,5 +48,5 @@ export const pickResponseSchema = z.object({
 export const pickPitAction: ActionType = {
     name: MancalaActions.pick_pit,
     description: mancalaSocketTexts.pick_pit(),
-    schema: z.toJSONSchema(pickResponseSchema)
+    schema: removeSchemaTag(z.toJSONSchema(pickResponseSchema))
 }

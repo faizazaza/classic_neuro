@@ -6,6 +6,7 @@
 import z from "zod"
 import { ActionType } from "../../types/ActionTypes"
 import { GameListEnum } from "../GameList"
+import { removeSchemaTag } from "../../utils/actionUtil"
 
 
 export const menuActionSocketTexts = {
@@ -63,7 +64,7 @@ export const chooseGameSchema = z.object({
 export const chooseGameAction: ActionType = {
     name: InMenuActions.choose_game,
     description: menuActionSocketTexts.choose_game(),
-    schema: z.toJSONSchema(chooseGameSchema)
+    schema: removeSchemaTag(z.toJSONSchema(chooseGameSchema))
 }
 
 
@@ -74,7 +75,7 @@ export const nameResponseSchema = z.object({
 export const changeNameAction: ActionType = {
     name: InMenuActions.change_name,
     description: menuActionSocketTexts.change_name(),
-    schema: z.toJSONSchema(nameResponseSchema)
+    schema: removeSchemaTag(z.toJSONSchema(nameResponseSchema))
 }
 
 export const colourResponseSchema = z.object({
@@ -84,5 +85,5 @@ export const colourResponseSchema = z.object({
 export const changeColourAction: ActionType = {
     name: InMenuActions.change_colour,
     description: menuActionSocketTexts.change_colour(),
-    schema: z.toJSONSchema(colourResponseSchema)
+    schema: removeSchemaTag(z.toJSONSchema(colourResponseSchema))
 }
