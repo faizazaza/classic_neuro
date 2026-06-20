@@ -11,14 +11,17 @@ export class GameMenu extends Container {
     private gameArray: GameArray;
 
     public onGameSelect: (game: GameList) => void
+    public onPlayerAttrChange: () => void;
 
     constructor(
         gameState: GameState,
-        onGameSelect: (game: GameList) => void
+        onGameSelect: (game: GameList) => void,
+        onPlayerAttrChange: () => void
     ){
         super()
         this.gameState = gameState;
         this.onGameSelect = onGameSelect;
+        this.onPlayerAttrChange = onPlayerAttrChange;
         this.gameArray = new GameArray(this.onGameSelect);
 
         this.drawMenu()
@@ -100,6 +103,7 @@ export class GameMenu extends Container {
 
         console.log(this.gameState.getPlayerName(playerId))
 
+        this.onPlayerAttrChange()
 
         return this.buildResultMsg(
             msg.data.id, 
@@ -129,6 +133,8 @@ export class GameMenu extends Container {
 
             //finally apply the colour to player
             this.gameState.setPlayerColour(playerId, parseResult.data.colour);
+
+            this.onPlayerAttrChange()
 
             return this.buildResultMsg(
                 msg.data.id, 

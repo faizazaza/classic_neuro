@@ -15,6 +15,7 @@ import { SocketGameInterface } from "../../websocket/SocketGameInterface";
 import { GameMenu } from "../../game/Menu/GameMenu";
 import { EndGameMenu } from "../../game/Menu/EndGameMenu";
 import { Game } from "../../game/GameAbstract";
+import { ScoreHeader } from "../../game/Menu/ScoreHeader";
 
 /** The screen that holds the app */
 export class MainScreen extends Container {
@@ -25,6 +26,7 @@ export class MainScreen extends Container {
   private gameInterface: SocketGameInterface;
   private gameMenu: GameMenu;
   private endGameMenu: EndGameMenu;
+  private scoreHeader: ScoreHeader;
 
   public mainContainer: Container;
   private pauseButton: FancyButton;
@@ -37,9 +39,14 @@ export class MainScreen extends Container {
     super();
 
     this.gameState = new GameState
-    this.gameMenu = new GameMenu(this.gameState, this.setGame)
+    this.scoreHeader = new ScoreHeader(this.gameState);
+    this.gameMenu = new GameMenu(this.gameState, this.setGame, this.scoreHeader.updateHeader)
     this.endGameMenu = new EndGameMenu(screen.width, screen.height, this.showGameArray)
-    this.gameInterface = new SocketGameInterface(this.gameState, this.gameMenu, this.endGameMenu)
+    this.gameInterface = new SocketGameInterface(this.gameState, this.gameMenu, this.endGameMenu, this.scoreHeader.updateHeader)
+
+    this.scoreHeader.updateHeader();
+    this.addChild(this.scoreHeader);
+    
 
     this.mainContainer = new Container();
     this.addChild(this.mainContainer);
@@ -114,6 +121,8 @@ export class MainScreen extends Container {
     const centerX = width * 0.5;
     const centerY = height * 0.5;
 
+    this.scoreHeader.x = centerX;
+    this.scoreHeader.y = 20;
     this.mainContainer.x = centerX;
     this.mainContainer.y = centerY;
     this.pauseButton.x = 30;

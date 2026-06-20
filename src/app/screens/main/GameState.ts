@@ -110,7 +110,7 @@ export class GameState {
     }
 
     public getPlayerWins(playerNum: number){
-        return this.players[playerNum-1].playerWins;
+        return this.players[playerNum-1].playerWins ?? 0;
     }
 
     public getIsSocketPlayer(playerNum: number){

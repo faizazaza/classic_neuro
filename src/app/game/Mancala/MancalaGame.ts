@@ -7,8 +7,6 @@ import { ActionType, CommandEnum, GameMsg, priorityEnum, ServerMsg } from "../..
 import { MancalaActions, mancalaSocketTexts, pickPitAction, pickResponseSchema } from "./MancalaActions";
 import { GameList } from "../GameList";
 
-//TODO: make the retry and home button menu its own component
-
 export class MancalaGame extends Game {
 
     /** Assets bundles required by this screen */
@@ -104,8 +102,6 @@ export class MancalaGame extends Game {
         this.gameOver = true;
         this.topText.style.fill = this.gameState.getPlayerColour(winner);
         this.topText.text = `Winner is ${this.gameState.getCurrentPlayerName()}!`;
-
-        this.gameState.updateWinner(winner)
 
         for (let i = 1; i < 3; i++) {
             if (this.gameState.getIsSocketPlayer(i)){

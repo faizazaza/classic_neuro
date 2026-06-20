@@ -150,7 +150,7 @@ export class MancalaBoard extends Container {
             pitIndex += 1;
             if ((pitIndex == 13 && player == 1) || (pitIndex == 6 && player == 2)) pitIndex ++;
             pitIndex = pitIndex % MancalaBoard.boardSize;
-            this.board[pitIndex].addSeed(i);
+            this.board[pitIndex].addSeed(1);
         }
        //check if player gets an extra turn
         if (this.board[pitIndex].isStore()){

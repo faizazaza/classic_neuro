@@ -18,7 +18,9 @@ export class SocketGameInterface{
     private endGameMenu: EndGameMenu;
     private currGame!: Game;
 
-    constructor(state: GameState, gameMenu: GameMenu, endGameMenu: EndGameMenu){
+    public onPlayerAttrChange: () => void;
+
+    constructor(state: GameState, gameMenu: GameMenu, endGameMenu: EndGameMenu, onPlayerAttrChange: () => void){
         this.gameState = state;
         this.gameMenu = gameMenu;
         this.endGameMenu = endGameMenu;
@@ -26,24 +28,25 @@ export class SocketGameInterface{
             this.exitGame,
             this.restartGame
         );
+        this.onPlayerAttrChange = onPlayerAttrChange;
         //add one mouse player and one socket player
-        //this.gameState.addPlayer("mouse", "AE2448", false);
+        this.gameState.addPlayer("mouse", "AE2448", null);
         
-        this.gameState.addPlayer(
-            "socket", 
-            "72BAA9", 
-            "ws://localhost:8000", 
-            (msg: ServerMsg, playerId: number, playerName: string) => this.handleSocketMsg(msg, playerId, playerName),
-            (id: number) => this.onSocketConnection(id)
-        );
-        this.gameState.addPlayer(
-            "socket", 
-            "72BAA9", 
-            "ws://localhost:8001", 
-            (msg: ServerMsg, playerId: number, playerName: string) => this.handleSocketMsg(msg, playerId, playerName),
-            (id: number) => this.onSocketConnection(id)
-        );
-        //this.gameState.addPlayer("mouse", "72BAA9", null);
+        // this.gameState.addPlayer(
+        //     "socket", 
+        //     "AE2448", 
+        //     "ws://localhost:8000", 
+        //     (msg: ServerMsg, playerId: number, playerName: string) => this.handleSocketMsg(msg, playerId, playerName),
+        //     (id: number) => this.onSocketConnection(id)
+        // );
+        // this.gameState.addPlayer(
+        //     "socket", 
+        //     "72BAA9", 
+        //     "ws://localhost:8001", 
+        //     (msg: ServerMsg, playerId: number, playerName: string) => this.handleSocketMsg(msg, playerId, playerName),
+        //     (id: number) => this.onSocketConnection(id)
+        // );
+        this.gameState.addPlayer("mouse", "72BAA9", null);
 
     }
 
@@ -121,6 +124,8 @@ export class SocketGameInterface{
 
     //called by this.currGame, triggers this.endGameMenu to show
     private triggerEndMenu = () => {
+        //update score header
+        this.onPlayerAttrChange();
         //register out-menu actions
         this.handleMenuActions(false, true);
 

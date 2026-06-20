@@ -37,7 +37,7 @@ export class MancalaPit extends Container {
         }
         else {
             this.store = false;
-            this.seedHeld = 1;
+            this.seedHeld = 4;
             this.selectable = true;
         }
         this.setUpGraphics(posX, posY);
