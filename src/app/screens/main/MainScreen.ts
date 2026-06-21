@@ -7,6 +7,7 @@ import { Container } from "pixi.js";
 import { engine } from "../../getEngine";
 import { PausePopup } from "../../popups/PausePopup";
 import { SettingsPopup } from "../../popups/SettingsPopup";
+import { PlayerPopup } from "../../popups/PlayerPopup";
 
 import { MancalaGame } from "../../game/Mancala/MancalaGame";
 import { GameList } from "../../game/GameList";
@@ -31,6 +32,8 @@ export class MainScreen extends Container {
   public mainContainer: Container;
   private pauseButton: FancyButton;
   private settingsButton: FancyButton;
+
+  private playerButton: FancyButton;
 
 
   private paused = false;
@@ -85,6 +88,17 @@ export class MainScreen extends Container {
     );
     this.addChild(this.settingsButton);
 
+    this.playerButton = new FancyButton({
+      defaultView: "player-edit.png",
+      anchor: 0.5,
+      animations: buttonAnimations,
+    });
+    this.playerButton.onPress.connect(() => {
+      const popup = new PlayerPopup(this.gameState, this.scoreHeader.updateHeader)
+      engine().navigation.presentPopupGivenApp(popup)
+    });
+    this.addChild(this.playerButton);
+
     this.mainContainer.addChild(this.gameMenu)
   }
 
@@ -129,6 +143,8 @@ export class MainScreen extends Container {
     this.pauseButton.y = 30;
     this.settingsButton.x = width - 30;
     this.settingsButton.y = 30;
+    this.playerButton.x = width - 30;
+    this.playerButton.y = 80;
   }
 
   /** Show screen with animations */
@@ -138,6 +154,7 @@ export class MainScreen extends Container {
     const elementsToAnimate = [
       this.pauseButton,
       this.settingsButton,
+      this.playerButton,
     ];
 
     let finalPromise!: AnimationPlaybackControls;

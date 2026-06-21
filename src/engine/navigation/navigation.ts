@@ -2,6 +2,7 @@ import type { Ticker } from "pixi.js";
 import { Assets, BigPool, Container } from "pixi.js";
 
 import type { CreationEngine } from "../engine";
+import { PlayerPopup } from "../../app/popups/PlayerPopup";
 
 /** Interface for app screens */
 interface AppScreen extends Container {
@@ -190,6 +191,20 @@ export class Navigation {
 
     this.currentPopup = new ctor();
     await this.addAndShowScreen(this.currentPopup);
+  }
+
+  public async presentPopupGivenApp(playerPopUp: PlayerPopup){
+    if (this.currentScreen) {
+      this.currentScreen.interactiveChildren = false;
+      await this.currentScreen.pause?.();
+    }
+
+    if (this.currentPopup) {
+      await this.hideAndRemoveScreen(this.currentPopup);
+    }
+
+    this.currentPopup = playerPopUp;
+    await this.addAndShowScreen(playerPopUp);
   }
 
   /**
