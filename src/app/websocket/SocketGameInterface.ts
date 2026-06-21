@@ -5,9 +5,9 @@ import { GameMenu } from "../game/Menu/GameMenu";
 import { GameState } from "../screens/main/GameState";
 import { ActionType, CommandEnum, GameMsg, priorityEnum, ServerMsg } from "../types/ActionTypes";
 
-//sends messages to and from socket players
-//socket players call commands from here
-//is passed the game when it is init
+//holds the current game and handles communication between it and other components
+//most notably the socket player functions 
+//there used to be a structure i swear
 
 //should really be renamed since its not specific to socket players anymore
 
@@ -56,7 +56,6 @@ export class SocketGameInterface{
     }
 
     public startGame(newGame: Game) {
-
         //unregister all MenuActions
         this.handleMenuActions(true, false);
         this.handleMenuActions(false, false);
@@ -88,7 +87,7 @@ export class SocketGameInterface{
     }
 
     private handleMenuActions(inMenu: boolean, register: boolean){
-        console.log("in handleMenuActions")
+        //console.log("in handleMenuActions")
         const menuActions = inMenu ? this.gameMenu.getInMenuActionList() : this.endGameMenu.getOutMenuActionList()
 
         for (const player of this.gameState.players){
@@ -104,7 +103,7 @@ export class SocketGameInterface{
     }
 
     private handleMenuActionsSingle(id: number, inMenu: boolean, register: boolean){
-        console.log("in handleMenuActionsSingle")
+        //console.log("in handleMenuActionsSingle")
         const menuActions = inMenu ? this.gameMenu.getInMenuActionList() : this.endGameMenu.getOutMenuActionList()
         const player = this.gameState.players[id-1]
 
@@ -134,6 +133,7 @@ export class SocketGameInterface{
 
     //called by this.endGameMenu
     public exitGame = () => {
+        this.gameState.gameEnd();
         //destroy game and unregister all game related actions
         this.currGame.destroy();
         
@@ -168,7 +168,7 @@ export class SocketGameInterface{
 
     //get game status from a Game
     public sendGameContext = (playerId: number, message: string, isSilent: boolean = false) => {
-        console.log(`test sendGameContext ${message}`)
+        //console.log(`test sendGameContext ${message}`)
         const msg: GameMsg = {
             command: CommandEnum.context,
             game: this.gameState.getGameName(),
@@ -181,7 +181,7 @@ export class SocketGameInterface{
     }
 
     public sendActionList = (playerId: number, actionList: ActionType[]) => {
-        console.log(`test sendActionList ${actionList[0].schema?.toString()}`)
+        //console.log(`test sendActionList ${actionList[0].schema?.toString()}`)
         const msg: GameMsg = {
             command: CommandEnum.register,
             game: this.gameState.getGameName(),
@@ -193,7 +193,7 @@ export class SocketGameInterface{
     }
 
     public sendActionForce = (playerId: number, stateVal: string, queryVal: string, actionList: string[], priorityVal: priorityEnum) => {
-        console.log(`test sendActionForce ${stateVal} ------ ${queryVal} ------ ${actionList}`)
+        //console.log(`test sendActionForce ${stateVal} ------ ${queryVal} ------ ${actionList}`)
         const msg: GameMsg = {
             command: CommandEnum.force,
             game: this.gameState.getGameName(),
@@ -208,7 +208,7 @@ export class SocketGameInterface{
     }
 
     public sendActionResult = (playerId: number, actionId: string, successVal: boolean, messageVal?: string) => {
-        console.log(`test sendActionResult ${successVal} - ${messageVal}`)
+        //console.log(`test sendActionResult ${successVal} - ${messageVal}`)
         const msg: GameMsg = {
             command: CommandEnum.result,
             game: this.gameState.getGameName(),
@@ -222,7 +222,7 @@ export class SocketGameInterface{
     }
 
     public unregisterAction = (playerId: number, actionList: string[]) => {
-         console.log(`test sendActionResult ${actionList}`)
+        //console.log(`test sendActionResult ${actionList}`)
         const msg: GameMsg = {
             command: CommandEnum.unregister,
             game: this.gameState.getGameName(),

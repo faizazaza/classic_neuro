@@ -64,8 +64,8 @@ export class MancalaGame extends Game {
 
         this.board = new MancalaBoard(this.gameState, this.sendActionForce, this.sendGameContext);
 
-        this.board.onTurnChange = (player) => {
-            this.updateTurnText(player);
+        this.board.onTurnChange = () => {
+            this.updateTurnText();
         };
 
         this.board.onGameEnd = (winner) => {
@@ -92,16 +92,16 @@ export class MancalaGame extends Game {
     }
 
 
-    updateTurnText = (player: number) => {
+    updateTurnText = () => {
         this.topText.text = `${this.gameState.getCurrentPlayerName()}'s Turn`;
         this.topText.style.fill = this.gameState.getCurrentPlayerColour();
     }
 
     endGame = (winner: number) => {
-        console.log(winner)
         this.gameOver = true;
         this.topText.style.fill = this.gameState.getPlayerColour(winner);
         this.topText.text = `Winner is ${this.gameState.getCurrentPlayerName()}!`;
+        this.gameState.updateWinner(winner)
 
         for (let i = 1; i < 3; i++) {
             if (this.gameState.getIsSocketPlayer(i)){

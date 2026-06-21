@@ -12,7 +12,7 @@ export class MancalaBoard extends Container {
     public board: MancalaPit[];
     private gameState: GameState;
 
-    public onTurnChange?: (player: number) => void;
+    public onTurnChange?: () => void;
     public onGameEnd?: (winner: number) => void;
 
     private sendGameContext: (playerId: number, message: string, isSilent: boolean) => void;
@@ -126,7 +126,8 @@ export class MancalaBoard extends Container {
             }
         }
         else {
-            this.onGameEnd?.(this.gameState.getWinnerPlayer());
+            const winner = this.finishUpGame();
+            this.onGameEnd?.(winner);
         }
     }
 
@@ -137,7 +138,7 @@ export class MancalaBoard extends Container {
     }
 
     private placeSeedInStore(player: number, seeds: number, instant = false){
-        this.board[(player * 7) - 1].addSeed(seeds, instant);
+        this.board[(player * 7) - 1].addSeed(seeds, 1, instant);
     }
 
     //when a pit is selected, fill in the next pits by the number of seeds in the selected pit
@@ -150,7 +151,7 @@ export class MancalaBoard extends Container {
             pitIndex += 1;
             if ((pitIndex == 13 && player == 1) || (pitIndex == 6 && player == 2)) pitIndex ++;
             pitIndex = pitIndex % MancalaBoard.boardSize;
-            this.board[pitIndex].addSeed(1);
+            this.board[pitIndex].addSeed(1, i);
         }
        //check if player gets an extra turn
         if (this.board[pitIndex].isStore()){
@@ -180,31 +181,30 @@ export class MancalaBoard extends Container {
 
         if (player1PitTotal == 0){
             this.placeSeedInStore(2, player2PitTotal, true);
-            this.finishUpGame();
             return true;
         }
         if (player2PitTotal == 0){
             this.placeSeedInStore(1, player1PitTotal, true);
-            this.finishUpGame();
             return true;
         }
         return false;
     }
 
+    //return winner id
     private finishUpGame() {
         //find winner
+        let winnerId = 0;
         const player1Score = this.board[6].getSeedHeld();
         const player2Score = this.board[13].getSeedHeld();
-        if (player1Score > player2Score) this.gameState.updateWinner(1);
-        else if (player2Score > player1Score) this.gameState.updateWinner(2);
+        if (player1Score > player2Score) winnerId = 1;
+        else if (player2Score > player1Score) winnerId = 2;
         //else tie
         //remove all seeds so it makes sense visually
         this.board.forEach((pit) => {
             if (!pit.isStore()){pit.removeSeeds();}
         })
         this.disableAllButtons();
-        this.gameState.gameEnd();
-        
+        return winnerId;
     }
 
     private nextTurn(): void {
@@ -213,7 +213,7 @@ export class MancalaBoard extends Container {
         //handle buttons
         this.refreshButtons();
         const nextPlayer = this.gameState.getCurrentPlayer();
-        this.onTurnChange?.(nextPlayer);
+        this.onTurnChange?.();
 
         //send action force to next player - if socket player
         //TODO: i didn' see this working in tests?
@@ -290,7 +290,7 @@ export class MancalaBoard extends Container {
             }
         }
         else {
-            const winner = this.gameState.getWinnerPlayer();
+            const winner = this.finishUpGame();
             this.onGameEnd?.(winner);
             //MancalaGame should handle the socket messages
             const nextPlayer = player == 1 ? 2 : 1;
