@@ -100,7 +100,7 @@ export class MancalaGame extends Game {
     endGame = (winner: number) => {
         this.gameOver = true;
         this.topText.style.fill = this.gameState.getPlayerColour(winner);
-        this.topText.text = `Winner is ${this.gameState.getCurrentPlayerName()}!`;
+        this.topText.text = `Winner is ${this.gameState.getPlayerName(winner)}!`;
         this.gameState.updateWinner(winner)
 
         for (let i = 1; i < 3; i++) {
