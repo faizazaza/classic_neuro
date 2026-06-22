@@ -1,7 +1,7 @@
 import { Container } from "pixi.js";
-import { ConfettiEmitter } from "../ConfettiEmitter";
+import { ConfettiEmitter } from "./ConfettiEmitter";
 import { FancyButton } from "@pixi/ui";
-import { CommandEnum, GameMsg, ServerMsg } from "../../types/ActionTypes";
+import { CommandEnum, GameMsg, ServerMsg } from "../types/ActionTypes";
 import { goToMenuAction, OutMenuActions, retryGameAction } from "./MenuActions";
 
 export class EndGameMenu extends Container {

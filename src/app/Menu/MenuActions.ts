@@ -4,9 +4,9 @@
 
 
 import z from "zod"
-import { ActionType } from "../../types/ActionTypes"
-import { GameListEnum } from "../GameList"
-import { removeSchemaTag } from "../../utils/actionUtil"
+import { ActionType } from "../types/ActionTypes"
+import { GameListEnum } from "../game/GameList"
+import { removeSchemaTag } from "../utils/actionUtil"
 
 
 export const menuActionSocketTexts = {

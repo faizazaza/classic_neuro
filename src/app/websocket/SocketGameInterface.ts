@@ -1,7 +1,7 @@
 
 import { Game } from "../game/GameAbstract";
-import { EndGameMenu } from "../game/Menu/EndGameMenu";
-import { GameMenu } from "../game/Menu/GameMenu";
+import { EndGameMenu } from "../Menu/EndGameMenu";
+import { GameMenu } from "../Menu/GameMenu";
 import { GameState } from "../screens/main/GameState";
 import { ActionType, CommandEnum, GameMsg, priorityEnum, ServerMsg } from "../types/ActionTypes";
 

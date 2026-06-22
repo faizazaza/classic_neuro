@@ -1,6 +1,6 @@
 import { FancyButton } from "@pixi/ui";
 import { Container, Graphics, Text } from "pixi.js";
-import { GameList } from "../GameList";
+import { GameList } from "../game/GameList";
 
 export class GameArray extends Container {
     private readonly iconSideLength = 200;

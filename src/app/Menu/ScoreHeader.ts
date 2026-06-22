@@ -1,6 +1,6 @@
 import { Text } from "pixi.js";
 import { Container } from "pixi.js";
-import { GameState } from "../../screens/main/GameState";
+import { GameState } from "../screens/main/GameState";
 
 export class ScoreHeader extends Container {
         

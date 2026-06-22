@@ -1,9 +1,9 @@
 import { Container } from "pixi.js";
-import { GameList } from "../GameList";
+import { GameList } from "../game/GameList";
 import { GameArray } from "./GameArray";
-import { GameState } from "../../screens/main/GameState";
+import { GameState } from "../screens/main/GameState";
 import { changeColourAction, changeNameAction, chooseGameAction, chooseGameSchema, colourResponseSchema, InMenuActions, menuActionSocketTexts, nameResponseSchema } from "./MenuActions";
-import { CommandEnum, GameMsg, ServerMsg } from "../../types/ActionTypes";
+import { CommandEnum, GameMsg, ServerMsg } from "../types/ActionTypes";
 
 export class GameMenu extends Container {
 
