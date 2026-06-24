@@ -57,16 +57,24 @@ export class GameState {
         this.turns ++;
     }
 
+    //send a 0 for a tie
     public updateWinner(playerId: number){
         this.winnerPlayer = playerId;
-        this.players[playerId-1].playerWins += 1;
+        if (playerId == 0) {
+            this.players[0].playerWins +=1;
+            this.players[1].playerWins +=1;
+            return;
+        }
+        else if (playerId == 1 || playerId == 2){
+            this.players[playerId-1].playerWins += 1;
+        }
     }
 
     public randomPlayerAssign(){
         this.currentPlayer = randomBool() ? 1 : 2;
     }
 
-    //validation is done BEFORE this point
+    //validation is done BEFORE this point - unless its manual in which there was no validation haha..
     public setPlayerColour(playerNum: number, colour: string){
         this.players[playerNum-1].playerColour = colour;
     }

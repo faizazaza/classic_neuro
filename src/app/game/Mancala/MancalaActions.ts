@@ -1,6 +1,6 @@
 import { ActionType } from "../../types/ActionTypes";
 import { z } from "zod";
-import { removeSchemaTag } from "../../utils/actionUtil";
+import { removeSchemaTag } from "../gameUtils/actionUtil";
 
 
 export const mancalaSocketTexts = {

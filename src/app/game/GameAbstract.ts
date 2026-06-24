@@ -18,11 +18,11 @@ export abstract class Game extends Container {
 
     public abstract startGame(): void;
 
-    //used to handle game assets on game end (should call cascadeGameEnd)
+    //used to handle any game assets on game end (should call cascadeGameEnd)
     public abstract endGame(winner: number): void;
     
     //used to pass signals back to gameInterface
-    public abstract cascadeGameEnd: () => void;
+    public abstract cascadeGameEnd: (winner: number) => void;
 
     //i could just have one method,, i dont really like it,, but i guess its a nice reminder of what actions needs to be made for each game?
     public abstract sendGameContext(playerId: number, message: string, isSilent: boolean): void

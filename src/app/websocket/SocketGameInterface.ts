@@ -122,7 +122,9 @@ export class SocketGameInterface{
     }
 
     //called by this.currGame, triggers this.endGameMenu to show
-    private triggerEndMenu = () => {
+    private triggerEndMenu = (winner: number) => {
+        //update winner
+        this.gameState.updateWinner(winner)
         //update score header
         this.onPlayerAttrChange();
         //register out-menu actions

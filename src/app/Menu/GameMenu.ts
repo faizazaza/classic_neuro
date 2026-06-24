@@ -3,7 +3,8 @@ import { GameList } from "../game/GameList";
 import { GameArray } from "./GameArray";
 import { GameState } from "../screens/main/GameState";
 import { changeColourAction, changeNameAction, chooseGameAction, chooseGameSchema, colourResponseSchema, InMenuActions, menuActionSocketTexts, nameResponseSchema } from "./MenuActions";
-import { CommandEnum, GameMsg, ServerMsg } from "../types/ActionTypes";
+import { GameMsg, ServerMsg } from "../types/ActionTypes";
+import { buildResultMsg } from "../game/gameUtils/actionUtil";
 
 export class GameMenu extends Container {
 
@@ -53,7 +54,8 @@ export class GameMenu extends Container {
                     break;
             }
         }
-        return this.buildResultMsg( //not a valid action sent?? is that even possible?
+        return buildResultMsg(
+            "Menu", //not a valid action sent?? is that even possible?
             msg.data.id,
             false,
             //msg?
@@ -63,7 +65,8 @@ export class GameMenu extends Container {
     private socketChooseGame(playerId: number, msg: ServerMsg): GameMsg {
         const parseResult = chooseGameSchema.safeParse(JSON.parse(msg.data.data ?? ""));
         if (!parseResult.success){
-            return this.buildResultMsg(
+            return buildResultMsg(
+                "Menu",
                 msg.data.id, 
                 false, 
                 menuActionSocketTexts.errInvalidSchema(msg.data.name)
@@ -73,13 +76,15 @@ export class GameMenu extends Container {
 
         if (selectedGame in GameList){
             this.onGameSelect(selectedGame)
-            return this.buildResultMsg(
+            return buildResultMsg(
+                "Menu",
                 msg.data.id, 
                 true
             )
         }
         else {
-            return this.buildResultMsg(
+            return buildResultMsg(
+                "Menu",
                 msg.data.id, 
                 false, 
                 menuActionSocketTexts.errInvalidGame(selectedGame)
@@ -92,7 +97,8 @@ export class GameMenu extends Container {
     private updatePlayerName(playerId: number, msg: ServerMsg): GameMsg {
         const parseResult = nameResponseSchema.safeParse(JSON.parse(msg.data.data ?? ""));
         if (!parseResult.success){
-            return this.buildResultMsg(
+            return buildResultMsg(
+                "Menu",
                 msg.data.id, 
                 false, 
                 menuActionSocketTexts.errInvalidSchema(msg.data.name)
@@ -105,7 +111,8 @@ export class GameMenu extends Container {
 
         this.onPlayerAttrChange()
 
-        return this.buildResultMsg(
+        return buildResultMsg(
+            "Menu",
             msg.data.id, 
             true
         )
@@ -115,7 +122,8 @@ export class GameMenu extends Container {
         //check if an actual hex value was returned, if it then send back an error
         const parseResult = colourResponseSchema.safeParse(JSON.parse(msg.data.data ?? ""));
         if (!parseResult.success){
-            return this.buildResultMsg(
+            return buildResultMsg(
+                "Menu",
                 msg.data.id, 
                 false, 
                 menuActionSocketTexts.errInvalidSchema(msg.data.name)
@@ -124,7 +132,8 @@ export class GameMenu extends Container {
         try {
             const res = parseInt(parseResult.data.colour, 16);
             if (isNaN(res) || res > 16777215){
-                return this.buildResultMsg(
+                return buildResultMsg(
+                    "Menu",
                     msg.data.id, 
                     false, 
                     menuActionSocketTexts.errNotHex()
@@ -136,31 +145,20 @@ export class GameMenu extends Container {
 
             this.onPlayerAttrChange()
 
-            return this.buildResultMsg(
+            return buildResultMsg(
+                "Menu",
                 msg.data.id, 
                 true
             )
 
         } catch (error) {
-            return this.buildResultMsg(
+            return buildResultMsg(
+                "Menu",
                 msg.data.id, 
                 false, 
                 menuActionSocketTexts.errNotHex()
             )
         }
-    }
-
-    private buildResultMsg(actionId: string, success: boolean, message?: string): GameMsg {
-        const gameMsg: GameMsg = {
-            command: CommandEnum.result,
-            game: "Menu",
-            data: {
-                id: actionId,
-                success: success,
-                message: message
-            }
-        }
-        return gameMsg;
     }
     
 }

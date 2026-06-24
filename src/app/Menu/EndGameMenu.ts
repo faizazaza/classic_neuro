@@ -1,8 +1,9 @@
 import { Container } from "pixi.js";
 import { ConfettiEmitter } from "./ConfettiEmitter";
 import { FancyButton } from "@pixi/ui";
-import { CommandEnum, GameMsg, ServerMsg } from "../types/ActionTypes";
+import { GameMsg, ServerMsg } from "../types/ActionTypes";
 import { goToMenuAction, OutMenuActions, retryGameAction } from "./MenuActions";
+import { buildResultMsg } from "../game/gameUtils/actionUtil";
 
 export class EndGameMenu extends Container {
 
@@ -129,32 +130,19 @@ export class EndGameMenu extends Container {
                 case OutMenuActions.go_to_menu:
                     this.onHomePressed();
                     this.hideMenu();
-                    return this.buildResultMsg(msg.data.id, true)
+                    return buildResultMsg("Menu", msg.data.id, true)
                 case OutMenuActions.retry_game:
                     this.onRetryPressed();
                     this.hideMenu();
-                    return this.buildResultMsg(msg.data.id, true)
+                    return buildResultMsg("Menu", msg.data.id, true)
                 default:
                     break;
             }
         }
-        return this.buildResultMsg( //same as seen in GameMenu's handleAction
+        return buildResultMsg("Menu",  //same as seen in GameMenu's handleAction
             msg.data.id, 
             false
         )
-    }
-
-    private buildResultMsg(actionId: string, success: boolean, message?: string): GameMsg {
-        const gameMsg: GameMsg = {
-            command: CommandEnum.result,
-            game: "Menu",
-            data: {
-                id: actionId,
-                success: success,
-                message: message
-            }
-        }
-        return gameMsg;
     }
 
 }

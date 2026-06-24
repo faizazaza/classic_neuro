@@ -6,7 +6,7 @@
 import z from "zod"
 import { ActionType } from "../types/ActionTypes"
 import { GameListEnum } from "../game/GameList"
-import { removeSchemaTag } from "../utils/actionUtil"
+import { removeSchemaTag } from "../game/gameUtils/actionUtil"
 
 
 export const menuActionSocketTexts = {

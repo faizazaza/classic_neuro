@@ -1,13 +1,12 @@
 import { ActionType } from "../../types/ActionTypes";
 import { z } from "zod";
 import { removeSchemaTag } from "../gameUtils/actionUtil";
+import { CellVals } from "./TicTacToeTypes";
 
 
-//these are exported as its a template but should not be used anywhere as they are
-
-export const templateSocketTexts = {
-    start: () => `start text, introduction to the game, rules and game state`,
-    action: () => `Message with information about an action, what it does, and how to use it`,
+export const TTTSocketTexts = {
+    start: (playerCell: CellVals, boardState: string) => `start text, introduction to the game, rules and game state`,
+    pick_cell: () => `Message with information about an action, what it does, and how to use it`,
     turn: () => `Message to inform player when its their turn to make an action`,
     errorInvalidSchema: (actionName: string) => `Action rejected: The data given does not match the schema for action ${actionName}`,
     errorInvalidAction: () => `Action rejected: The given action is not for {GAME NAME}.`,
@@ -20,16 +19,17 @@ export const templateSocketTexts = {
 
 //need to make sure the key = value here
 //is there a better way??????? probably
-export enum TemplateActions {
-    action = "action"
+export enum TTTActions {
+    pick_cell = "pick_cell"
 }
 
-export const templateResponseSchema = z.object({
-    value: z.number()
+export const pickCellResponseSchema = z.object({
+    row: z.string(),
+    column: z.number()
 })
 
-export const templateAction: ActionType = {
-    name: TemplateActions.action,
-    description: templateSocketTexts.action(),
-    schema: removeSchemaTag(z.toJSONSchema(templateResponseSchema))
+export const pickCellAction: ActionType = {
+    name: TTTActions.pick_cell,
+    description: TTTSocketTexts.pick_cell(),
+    schema: removeSchemaTag(z.toJSONSchema(pickCellResponseSchema))
 }

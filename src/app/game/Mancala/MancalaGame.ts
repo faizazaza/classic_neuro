@@ -3,9 +3,10 @@ import { GameState } from "../../screens/main/GameState";
 import { MancalaBoard } from "./MancalaBoard";
 import { engine } from "../../getEngine";
 import { Game } from "../GameAbstract";
-import { ActionType, CommandEnum, GameMsg, priorityEnum, ServerMsg } from "../../types/ActionTypes";
+import { ActionType, GameMsg, priorityEnum, ServerMsg } from "../../types/ActionTypes";
 import { MancalaActions, mancalaSocketTexts, pickPitAction, pickResponseSchema } from "./MancalaActions";
 import { GameList } from "../GameList";
+import { buildResultMsg } from "../gameUtils/actionUtil";
 
 export class MancalaGame extends Game {
 
@@ -17,7 +18,7 @@ export class MancalaGame extends Game {
     private gameState: GameState;
 
     //should be overriden with method in SocketGameInterface
-    public cascadeGameEnd: () => void;
+    public cascadeGameEnd: (winner: number) => void;
     public sendGameContext: (playerId: number, message: string, isSilent: boolean) => void;
     public sendActionList: (playerId: number, actionList: ActionType[]) => void;
     public sendActionForce: (playerId: number, stateVal: string, queryVal: string, actionList: string[], priorityVal: priorityEnum) => void;
@@ -101,7 +102,6 @@ export class MancalaGame extends Game {
         this.gameOver = true;
         this.topText.style.fill = this.gameState.getPlayerColour(winner);
         this.topText.text = `Winner is ${this.gameState.getPlayerName(winner)}!`;
-        this.gameState.updateWinner(winner)
 
         for (let i = 1; i < 3; i++) {
             if (this.gameState.getIsSocketPlayer(i)){
@@ -110,7 +110,7 @@ export class MancalaGame extends Game {
         }
 
         //call function assigned from Game Interface for game menu actions
-        this.cascadeGameEnd();
+        this.cascadeGameEnd(winner);
 
     }
 
@@ -126,18 +126,18 @@ export class MancalaGame extends Game {
             const parseResult = pickResponseSchema.safeParse(JSON.parse(msg.data.data ?? ""));
                         
             if (!parseResult.success){
-                return this.buildResultMsg(msg.data.id, false, mancalaSocketTexts.errorInvalidSchema(msg.data.name))
+                return buildResultMsg(GameList.Mancala, msg.data.id, false, mancalaSocketTexts.errorInvalidSchema(msg.data.name))
             }
             const pit = parseResult.data.pit
             if (pit >= 13 || pit <= 0){
-                return this.buildResultMsg(msg.data.id, false, mancalaSocketTexts.errorInvalidPit(pit))
+                return buildResultMsg(GameList.Mancala, msg.data.id, false, mancalaSocketTexts.errorInvalidPit(pit))
             }
             const pitOwner = pit < 7 ? 1 : 2;
             if (pitOwner != this.gameState.getCurrentPlayer()){
-                return this.buildResultMsg(msg.data.id, false, mancalaSocketTexts.errorOOB(pit))
+                return buildResultMsg(GameList.Mancala, msg.data.id, false, mancalaSocketTexts.errorOOB(pit))
             }
             if (this.board.isPitEmpty(pit)){
-                return this.buildResultMsg(msg.data.id, false, mancalaSocketTexts.errorEmpty(pit))
+                return buildResultMsg(GameList.Mancala, msg.data.id, false, mancalaSocketTexts.errorEmpty(pit))
             }
             //when the player needs to do another turn, both an action result success and action force needs to be sent
             //i could just send a failed action to force another try but that seems mean
@@ -146,25 +146,12 @@ export class MancalaGame extends Game {
         }
         else {
             //non-existant action / not a mancala action
-            return this.buildResultMsg(msg.data.id, false, mancalaSocketTexts.errorInvalidAction());
+            return buildResultMsg(GameList.Mancala, msg.data.id, false, mancalaSocketTexts.errorInvalidAction());
         }
     }
 
     public getWrongPlayerErr(msg: ServerMsg): GameMsg {
-        return this.buildResultMsg(msg.data.id, false, mancalaSocketTexts.errorTurn());
-    }
-
-    private buildResultMsg(actionId: string, success: boolean, message: string): GameMsg {
-        const gameMsg: GameMsg = {
-            command: CommandEnum.result,
-            game: GameList.Mancala, //hmm? or just project name in general?
-            data: {
-                id: actionId,
-                success: success,
-                message: message
-            }
-        }
-        return gameMsg;
+        return buildResultMsg(GameList.Mancala, msg.data.id, false, mancalaSocketTexts.errorTurn());
     }
 
 }
