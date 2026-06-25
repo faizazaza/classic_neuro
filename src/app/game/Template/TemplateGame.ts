@@ -9,7 +9,7 @@ export class TemplateGame extends Game {
 
     private gameState: GameState;
 
-    public cascadeGameEnd: () => void;
+    public cascadeGameEnd: (winner: number) => void;
     public sendGameContext: (playerId: number, message: string, isSilent: boolean) => void;
     public sendActionList: (playerId: number, actionList: ActionType[]) => void;
     public sendActionForce: (playerId: number, stateVal: string, queryVal: string, actionList: string[], priorityVal: priorityEnum) => void;
@@ -31,17 +31,18 @@ export class TemplateGame extends Game {
 
     }
 
-    public startGame(): void {
-        throw new Error("Method not implemented.");
-    }
-    public endGame(winner: number): void {
+    public startGame = (): void => {
         throw new Error("Method not implemented.");
     }
 
-    public handleAction(msg: ServerMsg, playerId: number, playerName: string): GameMsg | null {
+    public endGame = (winner: number): void => {
         throw new Error("Method not implemented.");
     }
-    public getWrongPlayerErr(msg: ServerMsg): GameMsg {
+
+    public handleAction = (msg: ServerMsg, playerId: number, playerName: string): GameMsg | null => {
+        throw new Error("Method not implemented.");
+    }
+    public getWrongPlayerErr = (msg: ServerMsg): GameMsg => {
         throw new Error("Method not implemented.");
     }
 

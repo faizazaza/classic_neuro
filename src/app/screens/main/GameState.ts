@@ -60,12 +60,7 @@ export class GameState {
     //send a 0 for a tie
     public updateWinner(playerId: number){
         this.winnerPlayer = playerId;
-        if (playerId == 0) {
-            this.players[0].playerWins +=1;
-            this.players[1].playerWins +=1;
-            return;
-        }
-        else if (playerId == 1 || playerId == 2){
+        if (playerId != 0) {
             this.players[playerId-1].playerWins += 1;
         }
     }

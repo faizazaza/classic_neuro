@@ -5,20 +5,44 @@ import { CellVals } from "./TicTacToeTypes";
 
 
 export const TTTSocketTexts = {
-    start: (playerCell: CellVals, boardState: string) => `start text, introduction to the game, rules and game state`,
-    pick_cell: () => `Message with information about an action, what it does, and how to use it`,
-    turn: () => `Message to inform player when its their turn to make an action`,
+    start: (playerCell: CellVals, oppCell: CellVals, boardState: string) => 
+        `To play Tic Tac Toe, you must take turns placing an X or an O in a 3x3 cell grid.
+            To win, players must have 3 of their cells in a row, either vertically, horizontally, or diagonally.
+            Your cells will be represented by ${playerCell}s on your cells.
+            Your opponent's cells will be represented by ${oppCell}s on their cells.
+            Here is the current state of the board: 
+            ${boardState}`,
+    pick_cell: () => 
+        `Select a cell to claim on the board.
+            Cells must be given as Row A/B/C and Column 1/2/3, for example A1 will be row: A, column: 1`,
+    turn: (playerCell: CellVals) => 
+        `It is your turn, use the pick_cell action to place a ${playerCell}`,
     errorInvalidSchema: (actionName: string) => `Action rejected: The data given does not match the schema for action ${actionName}`,
-    errorInvalidAction: () => `Action rejected: The given action is not for {GAME NAME}.`,
+    errorInvalidAction: () => `Action rejected: The given action is not for TicTacToe.`,
     errorTurn: () => `Action rejected: It is not your turn yet.`,
-    resultPlayer: () => `Message to inform socket player of their action result, should come with game state`,
-    resultOpponent: () => `Message to inform socket player of opponent's action, should come with a game state`,
-    win: () =>  `You have won the game!`,
-    lose: () =>  `You have lost.`
+    resultPlayer: (playerCell: CellVals, cellChosen: string, boardState: string) => 
+        `You ${playerCell} placed at ${cellChosen}
+            Here is the current state of the board:
+            ${boardState}`,
+    resultOpponent: (oppCell: CellVals, cellChosen: string, boardState: string) => 
+        `Your opponent placed a ${oppCell} at ${cellChosen}
+            Here is the current state of the board:
+            ${boardState}`,
+    win: (boardState: string) =>  
+        `You have won the game!
+            Here is the final state of the board:
+            ${boardState}`,
+    lose: (boardState: string) =>  
+        `You have lost the game.
+            Here is the final state of the board:
+            ${boardState}`,
+    draw: (boardState: string) =>  
+        `The game has ended in a draw.
+            Here is the final state of the board:
+            ${boardState}`,
 }
 
-//need to make sure the key = value here
-//is there a better way??????? probably
+
 export enum TTTActions {
     pick_cell = "pick_cell"
 }

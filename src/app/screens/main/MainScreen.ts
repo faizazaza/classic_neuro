@@ -17,6 +17,7 @@ import { GameMenu } from "../../Menu/GameMenu";
 import { EndGameMenu } from "../../Menu/EndGameMenu";
 import { Game } from "../../game/GameAbstract";
 import { ScoreHeader } from "../../Menu/ScoreHeader";
+import { TicTacToeGame } from "../../game/TicTacToe/TicTacToeGame";
 
 /** The screen that holds the app */
 export class MainScreen extends Container {
@@ -182,14 +183,16 @@ export class MainScreen extends Container {
   }
 
   setGame = (selectedGame: GameList) => {
-    //TODO switch case here
-    //also make an abstract game class MancalaGame can extend from
     this.gameState.newGame(selectedGame);
     let game: Game | null  = null;
 
     switch (selectedGame) {
       case GameList.Mancala:
         game = new MancalaGame(this.gameState);
+        break;
+
+      case GameList.TicTacToe:
+        game = new TicTacToeGame(this.gameState);
         break;
     
       default:

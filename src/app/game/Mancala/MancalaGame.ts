@@ -105,6 +105,22 @@ export class MancalaGame extends Game {
 
         for (let i = 1; i < 3; i++) {
             if (this.gameState.getIsSocketPlayer(i)){
+
+                if (i == winner){
+                    this.sendGameContext(
+                        i, 
+                        mancalaSocketTexts.win(this.board.getStoreStatus(i), this.board.getStoreStatus(3-i)),
+                        false
+                    )
+                }
+                else {
+                    this.sendGameContext(
+                        i, 
+                        mancalaSocketTexts.lose(this.board.getStoreStatus(i), this.board.getStoreStatus(3-i)),
+                        false
+                    )
+                }
+
                 this.unregisterAction(i, [MancalaActions.pick_pit])
             } 
         }
