@@ -20,8 +20,10 @@ export const TTTSocketTexts = {
     errorInvalidSchema: (actionName: string) => `Action rejected: The data given does not match the schema for action ${actionName}`,
     errorInvalidAction: () => `Action rejected: The given action is not for TicTacToe.`,
     errorTurn: () => `Action rejected: It is not your turn yet.`,
+    errorOOB: (row: string, column: number) => `Action rejected: The given cell row: ${row} column: ${column} is outside bounds. Permitted rows are A/B/C and columns are 1/2/3`,
+    errorOccupied: (row: string, column: number) => `Action rejected: The given cell row: ${row} column: ${column} is already occupied.`,
     resultPlayer: (playerCell: CellVals, cellChosen: string, boardState: string) => 
-        `You ${playerCell} placed at ${cellChosen}
+        `You placed a ${playerCell} at ${cellChosen}
             Here is the current state of the board:
             ${boardState}`,
     resultOpponent: (oppCell: CellVals, cellChosen: string, boardState: string) => 

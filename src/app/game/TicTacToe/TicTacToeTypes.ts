@@ -2,13 +2,7 @@
 //O = player 2
 export type CellVals = "X" | "O" | null
 
-export type RowVals = "A" | "B" | "C";
-
-export const rowLetterConvertMap: Record<RowVals, number> = {
-    A: -1,
-    B: 2,
-    C: 5
-}
+export const RowVals = ["A", "B", "C"];
 
 //should only get 1 or 2
 export const getPlayerCellVal = (playerId: number): CellVals => {

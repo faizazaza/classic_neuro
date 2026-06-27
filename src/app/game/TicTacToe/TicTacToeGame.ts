@@ -4,8 +4,10 @@ import { ActionType, priorityEnum, ServerMsg, GameMsg } from "../../types/Action
 import { engine } from "../../getEngine";
 import { Game } from "../GameAbstract";
 import { TicTacToeBoard } from "./TicTacToeBoard";
-import { pickCellAction, TTTActions, TTTSocketTexts } from "./TicTacToeActions";
-import { getPlayerCellVal } from "./TicTacToeTypes";
+import { pickCellAction, pickCellResponseSchema, TTTActions, TTTSocketTexts } from "./TicTacToeActions";
+import { RowVals, getPlayerCellVal} from "./TicTacToeTypes";
+import { buildResultMsg } from "../gameUtils/actionUtil";
+import { GameList } from "../GameList";
 
 
 export class TicTacToeGame extends Game {
@@ -140,11 +142,39 @@ export class TicTacToeGame extends Game {
         this.cascadeGameEnd(winner);
     }
 
-    public handleAction = (msg: ServerMsg, playerId: number, playerName: string): GameMsg | null => {
-        throw new Error("Method not implemented.");
-    }
+    //..i kinda dont need this to be abstract
     public getWrongPlayerErr = (msg: ServerMsg): GameMsg => {
-        throw new Error("Method not implemented.");
+        return buildResultMsg(GameList.TicTacToe, msg.data.id, false, TTTSocketTexts.errorTurn());
+    }
+
+    //return errors here, action result handling will be in the board as it is after action is done
+    public handleAction = (msg: ServerMsg, playerId: number, playerName: string): GameMsg | null => {
+        if (msg.data.name in TTTActions){
+            const parseResult = pickCellResponseSchema.safeParse(JSON.parse(msg.data.data ?? ""))
+            //validation steps
+            if (!parseResult.success){
+                return buildResultMsg(GameList.TicTacToe, msg.data.id, false, TTTSocketTexts.errorInvalidSchema(msg.data.name))
+            }
+            //check if row/column are in bounds
+            const rowString = parseResult.data.row;
+            const column = parseResult.data.column;
+            if (!(RowVals.includes(rowString)) || (column < 1 || column > 3)){
+                return buildResultMsg(GameList.TicTacToe, msg.data.id, false, TTTSocketTexts.errorOOB(rowString, column))
+            }
+            //check if cell is already filled
+            const row = RowVals.indexOf(rowString);
+            if (!(this.board.isCellEmpty(row, column))){
+                return buildResultMsg(GameList.TicTacToe, msg.data.id, false, TTTSocketTexts.errorOccupied(rowString, column))
+            }
+            //validation passed, place mark in cell
+            this.board.onCellSelectSocket(playerId, row, column, msg.data.id);
+            return null
+
+        }
+        else {
+            //non-existant action / not a mancala action
+            return buildResultMsg(GameList.TicTacToe, msg.data.id, false, TTTSocketTexts.errorInvalidAction());
+        }
     }
 
 }
