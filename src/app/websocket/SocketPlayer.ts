@@ -8,8 +8,6 @@ export class SocketPlayer {
 
     public onSocketMsg!: (msg: ServerMsg, playerId: number, playerName: string) => void;
     private onSocketConnection: (id: number) => void;
-    gameState: any;
-
 
     constructor(
         url: string, 

@@ -42,7 +42,7 @@ export class GameMenu extends Container {
 
     public unregisterActions(){}
 
-    public handleAction(msg: ServerMsg, playerId: number, playerName: string): GameMsg{
+    public handleAction(msg: ServerMsg, playerId: number): GameMsg{
         console.log("in GameMenu with" + msg.data.name)
         if (msg.data.name in InMenuActions){    
             switch (msg.data.name) {
@@ -51,7 +51,7 @@ export class GameMenu extends Container {
                 case InMenuActions.change_name:
                     return this.updatePlayerName(playerId, msg);
                 case InMenuActions.choose_game:
-                    return this.socketChooseGame(playerId, msg);
+                    return this.socketChooseGame(msg);
                 default:
                     break;
             }
@@ -64,7 +64,7 @@ export class GameMenu extends Container {
         )
     }
 
-    private socketChooseGame(playerId: number, msg: ServerMsg): GameMsg {
+    private socketChooseGame(msg: ServerMsg): GameMsg {
         const parseResult = chooseGameSchema.safeParse(JSON.parse(msg.data.data ?? ""));
         if (!parseResult.success){
             return buildResultMsg(
@@ -154,6 +154,7 @@ export class GameMenu extends Container {
             )
 
         } catch (error) {
+            console.error(error)
             return buildResultMsg(
                 "Menu",
                 msg.data.id, 

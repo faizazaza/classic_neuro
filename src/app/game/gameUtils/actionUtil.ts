@@ -2,12 +2,14 @@ import { GameList } from "../GameList";
 import { CommandEnum, GameMsg } from "../../types/ActionTypes";
 
 //should probably type this better :))))
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export const removeSchemaTag = (schema: any) => {
     try {
         delete schema["$schema"]
         return schema;
     } catch (error) {
-        console.error("Failed to remove $schema tag")
+        console.error("ERROR: Failed to remove $schema tag")
+        console.log(error)
     }
 }
 

@@ -5,7 +5,6 @@ import type { Ticker } from "pixi.js";
 import { Container } from "pixi.js";
 
 import { engine } from "../../getEngine";
-import { PausePopup } from "../../popups/PausePopup";
 import { SettingsPopup } from "../../popups/SettingsPopup";
 import { PlayerPopup } from "../../popups/PlayerPopup";
 

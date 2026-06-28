@@ -133,7 +133,7 @@ export class MancalaGame extends Game {
     //parse data sent by socketPlayer
     // if correct, run the action
     //if theres an issue, return an error
-    public handleAction(msg: ServerMsg, playerId: number, playerName: string): GameMsg | null {
+    public handleAction(msg: ServerMsg, playerId: number): GameMsg | null {
         //should be right player action here, check if it is an actual action, 
         //return a returnType <- also needs to update opponent with context if an update is made (in this function??)
         if (msg.data.name in MancalaActions){   //theres like only one but it sets precedent or whatever

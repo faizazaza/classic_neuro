@@ -229,14 +229,14 @@ export class SocketGameInterface{
 
         //in menu actions
         if (!this.gameState.isGameActive()){
-            this.gameState.players[playerId-1].socket?.sendGameMsg(this.gameMenu.handleAction(msg, playerId, playerName))
+            this.gameState.players[playerId-1].socket?.sendGameMsg(this.gameMenu.handleAction(msg, playerId))
             return;
         }
 
         //out menu actions
         if (this.currGame){ //at the start this is undefined
             if (this.currGame.gameOver){
-                this.gameState.players[playerId-1].socket?.sendGameMsg(this.endGameMenu.handleAction(playerId, msg, playerName));
+                this.gameState.players[playerId-1].socket?.sendGameMsg(this.endGameMenu.handleAction(msg));
                 return;
             }
                     //check if message is from the right player - use gamestate here

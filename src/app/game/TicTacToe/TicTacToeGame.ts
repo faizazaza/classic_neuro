@@ -142,7 +142,7 @@ export class TicTacToeGame extends Game {
     }
 
     //return errors here, action result handling will be in the board as it is after action is done
-    public handleAction = (msg: ServerMsg, playerId: number, playerName: string): GameMsg | null => {
+    public handleAction = (msg: ServerMsg, playerId: number): GameMsg | null => {
         if (msg.data.name in TTTActions){
             const parseResult = pickCellResponseSchema.safeParse(JSON.parse(msg.data.data ?? ""))
             //validation steps

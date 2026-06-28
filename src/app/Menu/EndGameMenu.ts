@@ -123,8 +123,8 @@ export class EndGameMenu extends Container {
         return [goToMenuAction, retryGameAction];
     }
 
-    public handleAction = (playerId: number, msg: ServerMsg, playerName: string): GameMsg => {
-        console.log("in endGameMenu with" + msg.data.name)
+    public handleAction = ( msg: ServerMsg): GameMsg => {
+        //console.log("in endGameMenu with" + msg.data.name)
         if (msg.data.name in OutMenuActions){   //no schema for these, so nothing to parse
             switch (msg.data.name){
                 case OutMenuActions.go_to_menu:

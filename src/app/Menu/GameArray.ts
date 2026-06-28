@@ -27,15 +27,11 @@ export class GameArray extends Container {
         this.layout.y = - (this.iconSideLength * 1.5);
 
 
-        let counter = 0;
-        for (const [key, value] of Object.entries(GameList)) {
+        for (const value of Object.values(GameList)) {
 
             const icon = this.createGameButton(value);
-            // icon.x = counter * (this.iconSideLength + 100); // 20px gap
-            // icon.y = 0;
 
             this.layout.addChild(icon);
-            counter++;
         }
 
         this.addChild(this.layout)

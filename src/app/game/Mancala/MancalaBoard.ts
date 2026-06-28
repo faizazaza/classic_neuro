@@ -262,7 +262,7 @@ export class MancalaBoard extends Container {
             true, 
             mancalaSocketTexts.resultPlayer(pit, this.getBoardStateString(player))
         )
-        const nextPlayer = player == 1 ? 2 : 1;
+        const nextPlayer = 3 - player;
         if (this.gameState.getIsSocketPlayer(nextPlayer)){
             this.sendGameContext(
                 nextPlayer, 
@@ -292,27 +292,23 @@ export class MancalaBoard extends Container {
             const winner = this.finishUpGame();
             this.onGameEnd?.(winner);
             //MancalaGame should handle the socket messages
-            const nextPlayer = player == 1 ? 2 : 1;
-            this.sendGameContext(
-                1,
-                winner == player ? 
-                    mancalaSocketTexts.win(
-                        this.board[(player * 7) - 1].getSeedHeld(), 
-                        this.board[(nextPlayer * 7) - 1].getSeedHeld()
-                    ) : 
-                    mancalaSocketTexts.lose(
-                        this.board[(player * 7) - 1].getSeedHeld(), 
-                        this.board[(nextPlayer * 7) - 1].getSeedHeld()
-                    ),
-                false,
-            )
-
-            //check if other player is a socket player before sending messages
-            if (this.gameState.getIsSocketPlayer(nextPlayer)){
-
+            for (let i = 1; i < 3; i++) {
+                if (this.gameState.getIsSocketPlayer(i)){
+                    this.sendGameContext(
+                        i,
+                        winner == i ? 
+                            mancalaSocketTexts.win(
+                                this.board[(i * 7) - 1].getSeedHeld(), 
+                                this.board[((3-i) * 7) - 1].getSeedHeld()
+                            ) : 
+                            mancalaSocketTexts.lose(
+                                this.board[(i * 7) - 1].getSeedHeld(), 
+                                this.board[((3-i) * 7) - 1].getSeedHeld()
+                            ),
+                        false,
+                    )
+                }
             }
-
-            //handle unregister in MancalaGame
         }
     }
 

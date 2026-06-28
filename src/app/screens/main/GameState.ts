@@ -17,7 +17,7 @@ export class GameState {
         colour: string, 
         socketUrl: string | null, 
         onSocketMsg: (msg: ServerMsg, playerId: number, playerName: string) => void = () => {},
-        onSocketConnection: (id: number) => void = (id: number) => {}
+        onSocketConnection: (id: number) => void = () => {}
     ) {
         const playersLength = this.players.length;
         this.players[playersLength] = {

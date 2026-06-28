@@ -2,6 +2,7 @@ import { GameState } from "../../screens/main/GameState";
 import { ActionType, priorityEnum, ServerMsg, GameMsg } from "../../types/ActionTypes";
 import { engine } from "../../getEngine";
 import { Game } from "../GameAbstract";
+import { GameList } from "../GameList";
 
 //this is exported as its a template but should not be used anywhere as it is
 
@@ -16,9 +17,11 @@ export class TemplateGame extends Game {
     public sendActionResult: (playerId: number, actionId: string, successVal: boolean, messageVal?: string) => void
     public unregisterAction: (playerId: number, actionList: string[]) => void
 
-    constructor(state: GameState){
-        super();
+    constructor(gameType: GameList, state: GameState){
+        super(gameType);
         this.gameState = state;
+        //FOR TEMPLATE ONLY
+        void this.gameState;
         engine().ticker.autoStart = true;
 
         //temp functions to start init,,,, these functions are overridden in SocketGameInterface
@@ -35,14 +38,14 @@ export class TemplateGame extends Game {
         throw new Error("Method not implemented.");
     }
 
-    public endGame = (winner: number): void => {
+    public endGame = (_winner: number): void => {
         throw new Error("Method not implemented.");
     }
 
-    public handleAction = (msg: ServerMsg, playerId: number, playerName: string): GameMsg | null => {
+    public handleAction = (_msg: ServerMsg, _playerId: number, _playerName: string): GameMsg | null => {
         throw new Error("Method not implemented.");
     }
-    public getWrongPlayerErr = (msg: ServerMsg): GameMsg => {
+    public getWrongPlayerErr = (_msg: ServerMsg): GameMsg => {
         throw new Error("Method not implemented.");
     }
 
