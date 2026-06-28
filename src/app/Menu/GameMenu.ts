@@ -30,6 +30,8 @@ export class GameMenu extends Container {
 
     private drawMenu() {
         this.removeChildren();
+        this.gameArray.x = 0;
+        this.gameArray.y = 0
         this.addChild(this.gameArray);
     }
 
