@@ -3,6 +3,7 @@ import { Game } from "../game/GameAbstract";
 import { buildResultMsg } from "../game/gameUtils/actionUtil";
 import { EndGameMenu } from "../Menu/EndGameMenu";
 import { GameMenu } from "../Menu/GameMenu";
+import { InMenuActions } from "../Menu/MenuActions";
 import { GameState } from "../screens/main/GameState";
 import { ActionType, CommandEnum, GameMsg, priorityEnum, ServerMsg } from "../types/ActionTypes";
 
@@ -47,7 +48,7 @@ export class SocketGameInterface{
                 console.log("INIT: Socket Player")
             }
             else {
-                this.gameState.addPlayer("mouse", "AE2448", null);
+                this.gameState.addPlayer("mouse", initPlayerColours[i], null);
                 console.log("INIT: Mouse Player")
             }
             
@@ -58,6 +59,14 @@ export class SocketGameInterface{
     //any actions to run after a socket connects
     private onSocketConnection = (id: number) => {
         this.handleMenuActionsSingle(id, true, true)
+        //send action force for name
+        this.sendActionForce(
+            id,
+            this.gameState.getPlayerName(id),
+            "Please enter your name",
+            [InMenuActions.change_name],
+            priorityEnum.low
+        )
     }
 
     public startGame(newGame: Game) {
