@@ -25,8 +25,8 @@ export class MancalaGame extends Game {
     public sendActionResult: (playerId: number, actionId: string, successVal: boolean, messageVal?: string) => void
     public unregisterAction: (playerId: number, actionList: string[]) => void
 
-    constructor(state: GameState){
-        super();
+    constructor(gameType: GameList, state: GameState){
+        super(gameType);
         this.gameState = state;
         engine().ticker.autoStart = true;
 
@@ -164,10 +164,6 @@ export class MancalaGame extends Game {
             //non-existant action / not a mancala action
             return buildResultMsg(GameList.Mancala, msg.data.id, false, mancalaSocketTexts.errorInvalidAction());
         }
-    }
-
-    public getWrongPlayerErr(msg: ServerMsg): GameMsg {
-        return buildResultMsg(GameList.Mancala, msg.data.id, false, mancalaSocketTexts.errorTurn());
     }
 
 }

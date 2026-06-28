@@ -1,5 +1,6 @@
 import { Container } from "pixi.js";
 import { ActionType, GameMsg, priorityEnum, ServerMsg } from "../types/ActionTypes";
+import { GameList } from "./GameList";
 
 //abstract for all games to inherit from
 //define the functions all games should have from here
@@ -9,10 +10,12 @@ import { ActionType, GameMsg, priorityEnum, ServerMsg } from "../types/ActionTyp
 //start game
 export abstract class Game extends Container {
 
+    gameType: GameList
     gameOver: boolean
 
-    constructor(){
+    constructor(gameType: GameList){
         super()
+        this.gameType = gameType;
         this.gameOver = false;
     }
 
@@ -32,7 +35,5 @@ export abstract class Game extends Container {
     public abstract unregisterAction(playerId: number, actionList: string[]): void;
 
     public abstract handleAction(msg: ServerMsg, playerId: number, playerName: string): GameMsg | null;
-
-    public abstract getWrongPlayerErr(msg: ServerMsg): GameMsg;
 
 }

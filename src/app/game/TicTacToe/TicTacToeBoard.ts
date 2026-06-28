@@ -60,10 +60,38 @@ export class TicTacToeBoard extends Container {
         }
 
         this.addChild(this.layout);
+
+
+    }
+
+    public sendInitForce(){
+        for (let i = 1; i < 3; i++) {
+            if (this.gameState.getIsSocketPlayer(i)){
+                this.sendGameContext(
+                    i,
+                    TTTSocketTexts.start(
+                        getPlayerCellVal(i),
+                        getPlayerCellVal(3-i),
+                        this.getBoardState()
+                    ),
+                    false
+                )
+            }
+            if (i == this.gameState.getCurrentPlayer()){
+                this.sendActionForce(
+                    i, 
+                    this.getBoardState(), 
+                    TTTSocketTexts.turn(getPlayerCellVal(i)),
+                    [TTTActions.pick_cell],
+                    priorityEnum.low
+                )
+            }
+            
+        }
     }
 
     public isCellEmpty = (row: number, column: number) => {
-        return this.board[row][column] == null
+        return this.board[row][column].getCellVal() == null
     }
 
     //when selected by a socket player - use sendActionResult
@@ -75,11 +103,11 @@ export class TicTacToeBoard extends Container {
             true, 
             TTTSocketTexts.resultPlayer(
                 getPlayerCellVal(playerId), 
-                `${RowVals[row]}${column}`,  
+                `${RowVals[row]}${column+1}`,  
                 this.getBoardState()
             )
         )
-        this.sendContextAfterTurn(playerId, `${RowVals[row]}${column}`);
+        this.sendContextAfterTurn(playerId, `${RowVals[row]}${column+1}`);
         this.progressTurn();
     }
 
@@ -87,7 +115,7 @@ export class TicTacToeBoard extends Container {
     //passed to the cell objects, should call the below function
     private onCellSelect = (row: number, column: number) => {
         this.pickCell(this.gameState.getCurrentPlayer(), row, column);
-        this.sendContextAfterTurn(this.gameState.getCurrentPlayer(), `${RowVals[row]}${column}`)
+        this.sendContextAfterTurn(this.gameState.getCurrentPlayer(), `${RowVals[row]}${column+1}`)
         this.progressTurn();
     }
 
@@ -174,9 +202,9 @@ export class TicTacToeBoard extends Container {
     public getBoardState = (): string => {
         return `
                 1   2   3
-            A | ${this.board[0][0].getCellVal()} | ${this.board[0][1].getCellVal()} | ${this.board[0][2].getCellVal()} |
-            B | ${this.board[1][0].getCellVal()} | ${this.board[1][1].getCellVal()} | ${this.board[2][2].getCellVal()} |
-            C | ${this.board[2][0].getCellVal()} | ${this.board[2][1].getCellVal()} | ${this.board[2][2].getCellVal()} |
+        A | ${this.board[0][0].getCellVal()} | ${this.board[0][1].getCellVal()} | ${this.board[0][2].getCellVal()} |
+        B | ${this.board[1][0].getCellVal()} | ${this.board[1][1].getCellVal()} | ${this.board[1][2].getCellVal()} |
+        C | ${this.board[2][0].getCellVal()} | ${this.board[2][1].getCellVal()} | ${this.board[2][2].getCellVal()} |
         `
     }
 

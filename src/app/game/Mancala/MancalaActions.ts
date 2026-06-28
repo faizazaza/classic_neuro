@@ -22,7 +22,6 @@ export const mancalaSocketTexts = {
     errorInvalidPit: (chosenPit: number) => `Action rejected: The given pit ${chosenPit} is not a valid pit, please try again.`,
     errorOOB: (chosenPit: number) => `Action rejected: The given pit ${chosenPit} does not belong to you, please try again.`,
     errorEmpty: (chosenPit: number) => `Action rejected: The given pit ${chosenPit} does not contain any seeds, please try again.`,
-    errorTurn: () => `Action rejected: It is not your turn yet.`,
     resultPlayer: (chosenPit: number, boardState: string) => 
         `The seeds in your selected pit ${chosenPit} were moved successfully. 
             New board state is: ${boardState}`,

@@ -1,5 +1,6 @@
 
 import { Game } from "../game/GameAbstract";
+import { buildResultMsg } from "../game/gameUtils/actionUtil";
 import { EndGameMenu } from "../Menu/EndGameMenu";
 import { GameMenu } from "../Menu/GameMenu";
 import { GameState } from "../screens/main/GameState";
@@ -30,23 +31,23 @@ export class SocketGameInterface{
         );
         this.onPlayerAttrChange = onPlayerAttrChange;
         //add one mouse player and one socket player
-        this.gameState.addPlayer("mouse", "AE2448", null);
+        //this.gameState.addPlayer("mouse", "AE2448", null);
         
-        // this.gameState.addPlayer(
-        //     "socket", 
-        //     "AE2448", 
-        //     "ws://localhost:8000", 
-        //     (msg: ServerMsg, playerId: number, playerName: string) => this.handleSocketMsg(msg, playerId, playerName),
-        //     (id: number) => this.onSocketConnection(id)
-        // );
-        // this.gameState.addPlayer(
-        //     "socket", 
-        //     "72BAA9", 
-        //     "ws://localhost:8001", 
-        //     (msg: ServerMsg, playerId: number, playerName: string) => this.handleSocketMsg(msg, playerId, playerName),
-        //     (id: number) => this.onSocketConnection(id)
-        // );
-        this.gameState.addPlayer("mouse", "72BAA9", null);
+        this.gameState.addPlayer(
+            "socket", 
+            "AE2448", 
+            "ws://localhost:8000", 
+            (msg: ServerMsg, playerId: number, playerName: string) => this.handleSocketMsg(msg, playerId, playerName),
+            (id: number) => this.onSocketConnection(id)
+        );
+        this.gameState.addPlayer(
+            "socket", 
+            "72BAA9", 
+            "ws://localhost:8001", 
+            (msg: ServerMsg, playerId: number, playerName: string) => this.handleSocketMsg(msg, playerId, playerName),
+            (id: number) => this.onSocketConnection(id)
+        );
+        //this.gameState.addPlayer("mouse", "72BAA9", null);
 
     }
 
@@ -135,7 +136,7 @@ export class SocketGameInterface{
 
     //called by this.endGameMenu
     public exitGame = () => {
-        this.gameState.gameEnd();
+        this.gameState.gameLeave();
         //destroy game and unregister all game related actions
         this.currGame.destroy();
         
@@ -148,20 +149,6 @@ export class SocketGameInterface{
     //called by this.endGameMenu
     private restartGame = () => {
         this.handleMenuActions(false, false);
-
-        //do i send startup messages here???
-        //or should i send a new context message?
-        for (const player of this.gameState.players){
-            if (player.isSocketPlayer){
-                const msg: GameMsg = {
-                    command: CommandEnum.startup,
-                    game: this.gameState.getGameName()
-                }
-                console.log(msg)
-                //no reason for this to be undefined really
-                player.socket?.sendGameMsg(msg);
-            }
-        }
         this.currGame.startGame();
     }
 
@@ -242,28 +229,38 @@ export class SocketGameInterface{
 
         //in menu actions
         if (!this.gameState.isGameActive()){
-            if (this.currGame){ //at the start this is undefined
-                if (this.currGame.gameOver){
-                this.gameState.players[playerId-1].socket?.sendGameMsg(this.endGameMenu.handleAction(playerId, msg, playerName));
-                return;
-                }
-            }
             this.gameState.players[playerId-1].socket?.sendGameMsg(this.gameMenu.handleAction(msg, playerId, playerName))
             return;
         }
 
+        //out menu actions
+        if (this.currGame){ //at the start this is undefined
+            if (this.currGame.gameOver){
+                this.gameState.players[playerId-1].socket?.sendGameMsg(this.endGameMenu.handleAction(playerId, msg, playerName));
+                return;
+            }
+                    //check if message is from the right player - use gamestate here
+            if (playerId != this.gameState.getCurrentPlayer()){
+                //send error to websocket
+                this.gameState.players[playerId-1].socket?.sendGameMsg(
+                    buildResultMsg(
+                        this.currGame.gameType,
+                        msg.data.id,
+                        false,
+                        `Action rejected: It is not your turn yet.`
+                    )
+                );
+                return;
+            }
 
-        //check if message is from the right player - use gamestate here
-        if (playerId != this.gameState.getCurrentPlayer()){
-            //send error to websocket
-            this.gameState.players[playerId-1].socket?.sendGameMsg(this.currGame.getWrongPlayerErr(msg));
-            return;
+            //pass msg to the game
+            const actionRes = this.currGame.handleAction(msg, playerId, playerName)
+            if (actionRes){ //if there was an error, send that back
+                this.gameState.players[playerId-1].socket?.sendGameMsg(actionRes);
+            }
         }
-
-        //pass msg to the game
-        const actionRes = this.currGame.handleAction(msg, playerId, playerName)
-        if (actionRes){ //if there was an error, send that back
-            this.gameState.players[playerId-1].socket?.sendGameMsg(actionRes);
+        else {
+            console.error("Error: isGameActive but no currGame")
         }
         
     }

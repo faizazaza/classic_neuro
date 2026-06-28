@@ -43,7 +43,7 @@ export class GameState {
         this.winnerPlayer = -1;
     }
 
-    public gameEnd(){   //call this when leaving a game!
+    public gameLeave(){   //call this when leaving a game!
         this.currentGame = null;
         this.gameActive = false;
     }

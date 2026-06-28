@@ -5,7 +5,7 @@ import { engine } from "../../getEngine";
 import { Game } from "../GameAbstract";
 import { TicTacToeBoard } from "./TicTacToeBoard";
 import { pickCellAction, pickCellResponseSchema, TTTActions, TTTSocketTexts } from "./TicTacToeActions";
-import { RowVals, getPlayerCellVal} from "./TicTacToeTypes";
+import { RowVals} from "./TicTacToeTypes";
 import { buildResultMsg } from "../gameUtils/actionUtil";
 import { GameList } from "../GameList";
 
@@ -23,8 +23,8 @@ export class TicTacToeGame extends Game {
     public sendActionResult: (playerId: number, actionId: string, successVal: boolean, messageVal?: string) => void
     public unregisterAction: (playerId: number, actionList: string[]) => void
 
-    constructor(state: GameState){
-        super();
+    constructor(gameType: GameList, state: GameState){
+        super(gameType);
         this.gameState = state;
         engine().ticker.autoStart = true;
 
@@ -54,11 +54,6 @@ export class TicTacToeGame extends Game {
 
         for (let i = 1; i < 3; i++) {
             if (this.gameState.getIsSocketPlayer(i)){
-                this.sendGameContext(
-                    i,
-                    TTTSocketTexts.start(getPlayerCellVal(i), getPlayerCellVal(3 - i), this.board.getBoardState()),
-                    true
-                )
                 //send action list for socket players
                 this.sendActionList(
                     i,
@@ -83,6 +78,10 @@ export class TicTacToeGame extends Game {
         });
 
         this.drawGame();
+
+        if (this.gameState.getCurrentIsSocketPlayer()){
+            this.board.sendInitForce()
+        }
 
     }
 
@@ -142,11 +141,6 @@ export class TicTacToeGame extends Game {
         this.cascadeGameEnd(winner);
     }
 
-    //..i kinda dont need this to be abstract
-    public getWrongPlayerErr = (msg: ServerMsg): GameMsg => {
-        return buildResultMsg(GameList.TicTacToe, msg.data.id, false, TTTSocketTexts.errorTurn());
-    }
-
     //return errors here, action result handling will be in the board as it is after action is done
     public handleAction = (msg: ServerMsg, playerId: number, playerName: string): GameMsg | null => {
         if (msg.data.name in TTTActions){
@@ -157,8 +151,8 @@ export class TicTacToeGame extends Game {
             }
             //check if row/column are in bounds
             const rowString = parseResult.data.row;
-            const column = parseResult.data.column;
-            if (!(RowVals.includes(rowString)) || (column < 1 || column > 3)){
+            const column = parseResult.data.column - 1; //socket will send base 1, but we need base 0
+            if (!(RowVals.includes(rowString)) || (column < 0 || column > 2)){
                 return buildResultMsg(GameList.TicTacToe, msg.data.id, false, TTTSocketTexts.errorOOB(rowString, column))
             }
             //check if cell is already filled

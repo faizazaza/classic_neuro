@@ -31,7 +31,7 @@ export class MainScreen extends Container {
   private scoreHeader: ScoreHeader;
 
   public mainContainer: Container;
-  private pauseButton: FancyButton;
+  // private pauseButton: FancyButton;
   private settingsButton: FancyButton;
 
   private playerButton: FancyButton;
@@ -69,15 +69,15 @@ export class MainScreen extends Container {
         duration: 100,
       },
     };
-    this.pauseButton = new FancyButton({
-      defaultView: "icon-pause.png",
-      anchor: 0.5,
-      animations: buttonAnimations,
-    });
-    this.pauseButton.onPress.connect(() =>
-      engine().navigation.presentPopup(PausePopup),
-    );
-    this.addChild(this.pauseButton);
+    // this.pauseButton = new FancyButton({
+    //   defaultView: "icon-pause.png",
+    //   anchor: 0.5,
+    //   animations: buttonAnimations,
+    // });
+    // this.pauseButton.onPress.connect(() =>
+    //   engine().navigation.presentPopup(PausePopup),
+    // );
+    // this.addChild(this.pauseButton);
 
     this.settingsButton = new FancyButton({
       defaultView: "icon-settings.png",
@@ -140,12 +140,10 @@ export class MainScreen extends Container {
     this.scoreHeader.y = 20;
     this.mainContainer.x = centerX;
     this.mainContainer.y = centerY;
-    this.pauseButton.x = 30;
-    this.pauseButton.y = 30;
     this.settingsButton.x = width - 30;
     this.settingsButton.y = 30;
-    this.playerButton.x = width - 30;
-    this.playerButton.y = 80;
+    this.playerButton.x = 30;
+    this.playerButton.y = 30;
   }
 
   /** Show screen with animations */
@@ -153,7 +151,6 @@ export class MainScreen extends Container {
     engine().audio.bgm.play("main/sounds/bgm-main.mp3", { volume: 0.5 });
 
     const elementsToAnimate = [
-      this.pauseButton,
       this.settingsButton,
       this.playerButton,
     ];
@@ -175,12 +172,12 @@ export class MainScreen extends Container {
   /** Hide screen with animations */
   public async hide() {}
 
-  /** Auto pause the app when window go out of focus */
-  public blur() {
-    if (!engine().navigation.currentPopup) {
-      engine().navigation.presentPopup(PausePopup);
-    }
-  }
+  // /** Auto pause the app when window go out of focus */
+  // public blur() {
+  //   if (!engine().navigation.currentPopup) {
+  //     engine().navigation.presentPopup(PausePopup);
+  //   }
+  // }
 
   setGame = (selectedGame: GameList) => {
     this.gameState.newGame(selectedGame);
@@ -188,11 +185,11 @@ export class MainScreen extends Container {
 
     switch (selectedGame) {
       case GameList.Mancala:
-        game = new MancalaGame(this.gameState);
+        game = new MancalaGame(GameList.Mancala, this.gameState);
         break;
 
       case GameList.TicTacToe:
-        game = new TicTacToeGame(this.gameState);
+        game = new TicTacToeGame(GameList.TicTacToe, this.gameState);
         break;
     
       default:

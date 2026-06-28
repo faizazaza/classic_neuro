@@ -19,7 +19,6 @@ export const TTTSocketTexts = {
         `It is your turn, use the pick_cell action to place a ${playerCell}`,
     errorInvalidSchema: (actionName: string) => `Action rejected: The data given does not match the schema for action ${actionName}`,
     errorInvalidAction: () => `Action rejected: The given action is not for TicTacToe.`,
-    errorTurn: () => `Action rejected: It is not your turn yet.`,
     errorOOB: (row: string, column: number) => `Action rejected: The given cell row: ${row} column: ${column} is outside bounds. Permitted rows are A/B/C and columns are 1/2/3`,
     errorOccupied: (row: string, column: number) => `Action rejected: The given cell row: ${row} column: ${column} is already occupied.`,
     resultPlayer: (playerCell: CellVals, cellChosen: string, boardState: string) => 
