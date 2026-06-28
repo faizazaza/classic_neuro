@@ -43,7 +43,7 @@ export class GameMenu extends Container {
     public unregisterActions(){}
 
     public handleAction(msg: ServerMsg, playerId: number): GameMsg{
-        console.log("in GameMenu with" + msg.data.name)
+        //console.log("in GameMenu with" + msg.data.name)
         if (msg.data.name in InMenuActions){    
             switch (msg.data.name) {
                 case InMenuActions.change_colour:

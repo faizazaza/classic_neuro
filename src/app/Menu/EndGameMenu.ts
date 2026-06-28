@@ -99,7 +99,7 @@ export class EndGameMenu extends Container {
     }
 
     public showMenu(){
-        console.log("in show Menu")
+        //console.log("in show Menu")
         for (let i = 0; i <= 5; i++) {
             const xVal = (-this.screenWidth/2) + ((this.screenWidth) / 5 * i)
             this.confetti.burst(xVal, -this.screenHeight/2, 120);

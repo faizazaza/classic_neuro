@@ -30,24 +30,28 @@ export class SocketGameInterface{
             this.restartGame
         );
         this.onPlayerAttrChange = onPlayerAttrChange;
-        //add one mouse player and one socket player
-        //this.gameState.addPlayer("mouse", "AE2448", null);
-        
-        this.gameState.addPlayer(
-            "socket", 
-            "AE2448", 
-            "ws://localhost:8000", 
-            (msg: ServerMsg, playerId: number, playerName: string) => this.handleSocketMsg(msg, playerId, playerName),
-            (id: number) => this.onSocketConnection(id)
-        );
-        this.gameState.addPlayer(
-            "socket", 
-            "72BAA9", 
-            "ws://localhost:8001", 
-            (msg: ServerMsg, playerId: number, playerName: string) => this.handleSocketMsg(msg, playerId, playerName),
-            (id: number) => this.onSocketConnection(id)
-        );
-        //this.gameState.addPlayer("mouse", "72BAA9", null);
+
+        const initPlayerColours = ["AE2448", "72BAA9"]
+
+        const socketUrls = [import.meta.env.VITE_SOCKET_ONE ?? "", import.meta.env.VITE_SOCKET_TWO ?? ""]
+
+        for (let i = 0; i < socketUrls.length; i++) {
+            if (socketUrls[i] != ""){
+                this.gameState.addPlayer(
+                    "socket", 
+                    initPlayerColours[i], 
+                    socketUrls[i], 
+                    (msg: ServerMsg, playerId: number, playerName: string) => this.handleSocketMsg(msg, playerId, playerName),
+                    (id: number) => this.onSocketConnection(id)
+                );
+                console.log("INIT: Socket Player")
+            }
+            else {
+                this.gameState.addPlayer("mouse", "AE2448", null);
+                console.log("INIT: Mouse Player")
+            }
+            
+        }
 
     }
 
